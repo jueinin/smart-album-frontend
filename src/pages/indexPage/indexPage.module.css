@@ -1,0 +1,50 @@
+.black-link {
+    color: #000;
+}
+.top-bar {
+    height: 80vh;
+    background-image: url("http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u2.jpg");
+    background-size: cover;
+}
+.search-bar-wrapper {
+    margin-top: 150px;
+    text-align: center;
+}
+.search-input :global(.ant-input) {
+    background-color: transparent;
+    border: none;
+    outline: none;
+    color: #000;
+}
+.search-input :global(.ant-input)::placeholder {
+    color: #000;
+}
+.search-input-wrapper {
+    border: 2px solid black;
+    padding: 5px;
+    display: flex;
+}
+.bottom-content {
+    padding: 20px 50px;
+}
+.content-item-wrapper {
+    display: flex;
+    justify-content: space-around;
+}
+.content-item {
+
+}
+.footer {
+    background-color: grey;
+    text-align: center;
+    color: #ffffff;
+    padding: 40px 0;
+}
+.promotiom {
+    width: 100%;
+    height: 300px;
+    background-color: #00c9ff;
+    color: #000;
+    text-align: center;
+    line-height: 300px;
+}

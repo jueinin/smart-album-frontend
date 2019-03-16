@@ -1,0 +1,26 @@
+.wrapper {
+    width: 200px;
+    height: 200px;
+    position: relative;
+}
+.img {
+    width: 100%;
+    height: 180px;
+}
+.more-icon {
+    position: absolute;
+    right: 5px;
+    top: 0;
+    background-color: grey;
+    opacity: 0.3;
+    color: #ffffff;
+    font-size: 1.5rem;
+    display: none;
+}
+.wrapper:hover .more-icon {
+    display: block;
+}
+.edit-input-tag {
+    width: 50px;
+
+}

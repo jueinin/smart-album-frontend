@@ -1,0 +1,27 @@
+.body {
+    z-index: 10;
+    box-shadow: 10px 10px 10px black;
+    min-width: 25vw;
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    background-color: #ffffff;
+}
+.cancel {
+    width: 50%;
+}
+.confirm {
+    width: 50%;
+    background-color: #92fe9d;
+}
+.overlay {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    //background-color: grey;
+    opacity: 0.1;
+}

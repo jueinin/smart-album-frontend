@@ -1,0 +1,12 @@
+.body {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 30px;
+}
+.margin-left {
+    margin-left: 25px;
+}
+.bottom-body-button {
+    display: flex;
+}

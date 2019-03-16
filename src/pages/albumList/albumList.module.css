@@ -1,0 +1,47 @@
+
+.body {
+    height: 100vh;
+}
+.nav {
+    height: 7%;
+    padding: 10px 50px;
+}
+.search-input {
+    width: 100%;
+}
+.search-wrapper {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    height: 100%;
+}
+.nav-buttons {
+    height: 100%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+}
+.bottom-content {
+    height: 93%;
+
+}
+.left-nav {
+
+}
+.height100 {
+    height: 100%;
+}
+.left-nav-bottom {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    margin-top: 70vh;
+}
+.right-top-nav {
+    display: flex;
+    justify-content: start;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    padding: 10px;
+}

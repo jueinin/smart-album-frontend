@@ -1,0 +1,8 @@
+.wrapper {
+    background-color: grey;
+    width: 100%;
+}
+.progress {
+    background-color: yellow;
+    height: 100%;
+}

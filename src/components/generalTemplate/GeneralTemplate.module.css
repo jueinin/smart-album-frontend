@@ -1,0 +1,111 @@
+.top {
+    height: 72px;
+    display: block;
+}
+.inner-top {
+    padding: 0 20px 0 20px;
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+.icon {
+    cursor: pointer;
+    font-size: 24px;
+    padding: 8px;
+}
+.icon:hover {
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, .1);
+}
+.logo {
+    display: inline-block;
+    height: 23px;
+    margin-left: 1rem;
+}
+.logo-img {
+    background-image: url("http://jueinin.oss-cn-hongkong.aliyuncs.com/images/Google_Chrome-128.png");
+    display: inline-block;
+    width: 64px;
+    height: 23px;
+    background-size: 100% 100%;
+    margin-right: 10px;
+}
+.logo-title {
+    font-size: 20px;
+    font-weight: 400;
+}
+.top-center {
+    width: 40%;
+    margin: 8px auto;
+    border: none;
+    outline: none;
+    height: 50px;
+    display: flex;
+}
+.top-center-input {
+    border: none;
+    outline: none;
+    background-color: transparent;
+    height: 100%;
+    flex-grow: 1;
+}
+.search-icon {
+    font-size: 30px !important;
+    height: 50px;
+    padding: 10px;
+    cursor: pointer;
+}
+.top-center-right {
+    width: 20%;
+    margin-left: 1rem;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+.top-center-left {
+    flex-grow: 1;
+    background-color: rgba(0, 0, 0, .05);
+}
+.button {
+    color: #1a73e8;
+    outline: none;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+}
+.button:hover {
+    background-color: rgba(219,236,242,0.07);
+}
+.left-button {
+    outline: none;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    padding: 28px;
+    width: 97px;
+    align-items: center;
+}
+.left-button:hover {
+    background-color: rgba(219,236,242,0.3);
+    border-radius: 50%;
+}
+.left {
+    display: flex;
+    flex-direction: column;
+}
+.bottom {
+    display: flex;
+    flex-grow: 1;
+}
+.right {
+    flex-grow: 1;
+    display: flex;
+}
+.main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}

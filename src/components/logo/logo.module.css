@@ -1,0 +1,16 @@
+.body {
+    height: 100%;
+    display: flex;
+}
+.img {
+    height: 100%;
+}
+
+.title-nav {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    border-left: 2px solid black;
+    font-size: 1.3rem;
+    height: 100%;
+}
