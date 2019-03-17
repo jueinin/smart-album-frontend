@@ -13,6 +13,7 @@ import SignIn from "./pages/signin/signin";
 import AlbumList from "./pages/albumList/albumList";
 import CustomDialog from "./components/dialog/customDialog";
 import Test from "./pages/Test/test";
+import PersonalCenter from "./pages/personalCenter/personalCenter";
 
 ReactDOM.render(
     <div>
@@ -22,6 +23,7 @@ ReactDOM.render(
                     <Route path={"/signin"} component={SignIn}/>
                     <Route path={"/signup"} component={SignUp}/>
                     <Route path={'/albumlist'} component={AlbumList}/>
+                    <Route path={"/personalCenter"} component={PersonalCenter}/>
                     <Route path={'/test'} component={Test}/>
                     <Route path={'/'} component={MainRoute}/>
                 </Switch>

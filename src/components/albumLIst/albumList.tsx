@@ -18,7 +18,7 @@ class AlbumList extends Component {
             <div>
                 <div className={style.body}>
                     {fakeList.map((value, index) => {
-                        return <AlbumListItem cover={value.cover} title={value.title}
+                        return <AlbumListItem key={index} cover={value.cover} title={value.title}
                                               className={style["margin-left"]}/>;
                     })}
                 </div>

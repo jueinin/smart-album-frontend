@@ -20,7 +20,7 @@ class Signup extends Component<Props,{}> {
         }
     }
     loginButton=()=>{
-        this.props.history.push("/signup");
+        this.props.history.push("/signin");
     }
     registry=()=>{
         //发注册请求
