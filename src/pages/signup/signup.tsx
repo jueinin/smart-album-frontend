@@ -25,7 +25,7 @@ class Signup extends Component<Props,{}> {
     registry=()=>{
         //发注册请求
         //data = JSON.stringify(data);
-        Axios.post("/api/regist.do", {
+        Axios.post("/api/user/register", {
                     username: this.props.form.getFieldValue("username"),
                     password: this.props.form.getFieldValue("password"),
                     email: this.props.form.getFieldValue("email")
@@ -33,7 +33,7 @@ class Signup extends Component<Props,{}> {
         ).then(value => {
             let status = value.data.status as string;
             if (status == "ok") {
-                this.props.history.push("/album");
+                this.props.history.push("/albumlist");
             } else if (status.startsWith("user")) {
                 notification.info({
                     message:"用户名已经被注册了"
@@ -47,6 +47,8 @@ class Signup extends Component<Props,{}> {
                     message:"账号密码错误,请重试"
                 })
             }
+        }).catch(err=>{
+            notification.info({message:"因不可抗力,注册失败了"})
         })
     }
     render() {

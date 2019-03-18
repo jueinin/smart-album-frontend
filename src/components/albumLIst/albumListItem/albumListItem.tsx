@@ -1,54 +1,73 @@
 import React, {ChangeEvent, Component} from 'react';
 import {Link} from "react-router-dom";
 import style from './albumListItem.module.css';
-import {Dropdown, Form, Icon, Input, Menu, Modal, Radio, Tag} from "antd";
-interface Props {
+import {Button, Dropdown, Form, Icon, Input, Menu, message, Modal, Popconfirm, Radio, Tag, Tooltip} from "antd";
+import Axios from "axios";
+import {FormComponentProps} from "antd/lib/form";
+interface Props extends FormComponentProps{
+    id: string;
     cover:string;//url
     title: string;
+    createTime: string;
+    description: string;
     className?: string;
+    photoAmount: string;
+    onDeleteCallback:(id:any)=>void
 }
 interface State {
     editVisible: boolean;
-    tags: string[];
-    inputVisible: boolean;
-    inputValue: string;
 }
 class AlbumListItem extends Component<Props,State> {
     constructor(props:any) {
         super(props);
-        this.state = {
-            editVisible: false, tags: ["tag1", "tag2", "tag3"],
-            inputValue: "", inputVisible: false
+        this.state = {                                                                   //那个创建相册 底下不更新问题  到时候mobx解决下
+            editVisible: false
         };
     }
     onOpenEditModal=()=>{
-        this.setState({editVisible: true})
+        this.setState({editVisible: true},()=>{
+            if (!this.props.form.getFieldValue("isPublic")) {
+                this.props.form.setFieldsValue({
+                    isPublic: "isPrivate",
+                    albumName: "我的相册"
+                })
+            }
+        })
+    }
+    onSubmitEditModal=()=>{
+        let name = this.props.form.getFieldValue("albumName");
+        let description = this.props.form.getFieldValue("albumDescription");
+        let isPublic = this.props.form.getFieldValue("isPublic");
     }
     onCloseEditModal=()=>{
         this.setState({editVisible: !this.state.editVisible})
     }
-    onTagPlusClick=()=>{
-        this.setState({inputVisible: true})
+    onDeleteClick=()=>{
+        Axios.post("/api/album/delete",{
+            albumId: this.props.id
+        }).then(value => {
+            if (value.data.status === "ok") {
+                message.success("删除成功");
+                this.props.onDeleteCallback(this.props.id);
+            }
+        })
     }
-    onConfirm=()=>{
-        let newTag = this.state.inputValue;
-        if (newTag && this.state.tags.indexOf(newTag) === -1) {
-            this.setState({inputValue:"", tags:[...this.state.tags,newTag], inputVisible: false})
-        }
-    }
-    onTagInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-        this.setState({inputValue: e.target.value})
-    };
     render() {
         const MenuItem = Menu.Item;
         const FormItem = Form.Item;
         const RadioGroup = Radio.Group;
+        const getFieldDecorator = this.props.form.getFieldDecorator;
         const overlay = <Menu>
             <MenuItem onClick={this.onOpenEditModal}>编辑相册</MenuItem>
             <MenuItem>分享</MenuItem>
-            <MenuItem>删除相册</MenuItem>
+            <MenuItem>
+                <Popconfirm title={"确定删除吗"} onConfirm={this.onDeleteClick}>
+                    删除相册
+                </Popconfirm>
+            </MenuItem>
             <MenuItem>下载相册</MenuItem>
         </Menu>;
+
         return (
             <div className={this.props.className}>
                 <div className={style.wrapper}>
@@ -56,37 +75,32 @@ class AlbumListItem extends Component<Props,State> {
                         <img className={style.img} src={this.props.cover}/>
                         <h3 style={{marginTop: 15}}>{this.props.title}</h3>
                     </Link>
-                    <Dropdown overlay={overlay} trigger={['click']}>
+                    <Dropdown overlay={overlay}>
                         <Link to={'#'} className={style["more-icon"]}><Icon type="more"/></Link>
                     </Dropdown>
                 </div>
-                <Modal visible={this.state.editVisible} onCancel={this.onCloseEditModal}>
+                <Modal visible={this.state.editVisible} onCancel={this.onCloseEditModal} onOk={this.onSubmitEditModal}>
                     <Form>
-                        <FormItem label={'创建时间'}>
-                            2019年1月22日 19：45
-                        </FormItem>
-                        <FormItem label={'最后修改时间'}>
-                            2019年1月22日 19：45
-                        </FormItem>
                         <FormItem label={'相册名'}>
-                            <Input defaultValue={"我的相册"}/>
+                            {getFieldDecorator("albumName")(
+                                <Input type={"text"}/>
+                            )}
+                        </FormItem>
+                        <FormItem label={"相册描述"}>
+                            {getFieldDecorator("albumDescription")(
+                                <Input type={"text"}/>
+                            )}
                         </FormItem>
                         <FormItem label={'隐私设置'}>
-                            <RadioGroup>
-                                <Radio value={'public'}>公开</Radio>
-                                <Radio value={'private'}>私密</Radio>
-                            </RadioGroup>
+                            {getFieldDecorator("isPublic")(
+                                <RadioGroup>
+                                    <Radio value={'isPublic'}>公开</Radio>
+                                    <Radio value={'isPrivate'}>私密</Radio>
+                                </RadioGroup>
+                            )}
                         </FormItem>
-                        <FormItem label={'相册标签'}>
-                            {this.state.tags.map((value, index) => {
-                                return <Tag closable key={index}>{value}</Tag>;
-                            })}
-                            {this.state.inputVisible ? <Input size={"small"} type={'text'} className={style["edit-input-tag"]}
-                                onChange={this.onTagInputChange} value={this.state.inputValue} onBlur={this.onConfirm} onPressEnter={this.onConfirm}/> :
-                                <Tag onClick={this.onTagPlusClick}>
-                                    <Icon type={'plus'}/>
-                                </Tag>
-                            }
+                        <FormItem>
+
                         </FormItem>
                     </Form>
                 </Modal>
@@ -95,4 +109,4 @@ class AlbumListItem extends Component<Props,State> {
     }
 }
 
-export default AlbumListItem;
+export default Form.create()(AlbumListItem);

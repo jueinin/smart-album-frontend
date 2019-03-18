@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Button, Col, Form, Icon, Input, Menu, Modal, notification, Radio, Row, Upload} from "antd";
+import {Button, Col, Form, Icon, Input, Menu, message, Modal, notification, Radio, Row, Upload} from "antd";
 import Logo from '../../components/logo/logo';
 import style from './albumList.module.css';
 import SizeProgress from "../../components/sizeProgress/sizeProgress";
@@ -20,13 +20,14 @@ interface State {
     uploadFileNames: string[];
     uploadFiles: UploadFile[];
     uploadMultipleVisible: boolean;
+    createAlbumVisible: boolean;
     uploadMultipleFiles: File[];
 }
 class AlbumList extends Component<Props,State> {
     constructor(props:any) {
         super(props);
         this.state={uploadModalVisible: false, uploadFileNames: [], uploadFiles: undefined, uploadMultipleVisible: false,
-            uploadMultipleFiles: undefined}
+            uploadMultipleFiles: undefined, createAlbumVisible: false}
     }
     onUploadClick=()=>{
         this.setState({uploadModalVisible: true})//图片名称 图片描述 是否公开默认不公开
@@ -61,10 +62,9 @@ class AlbumList extends Component<Props,State> {
         // @ts-ignore
         formData.set("isPublic", isPublic == "isPublic" ? 1 : 0);
         formData.set("file", file);
-        Axios.post("/api/photo/upload.do", formData,{
+        Axios.post("/api/photo/upload", formData,{
             headers: {
-                'Content-Type': 'multipart/form-data',
-                'cookie':"JSESSIONID=F77A351799EBEED4C69E1BA34F20A624;"
+                'Content-Type': 'multipart/form-data'
             },
         }).then(value => {
             if (value.data.status === "ok") {
@@ -80,10 +80,39 @@ class AlbumList extends Component<Props,State> {
         console.log(file.file)
         let formData = new FormData();
         formData.set("files", file.file);
-        Axios.post("/api/photo/uploads.do", formData).then(value => {
-            if (value.data.status !== "ok") {
-                notification.info({message: "上传失败"})
+        Axios.post("/api/photo/uploads", formData).then(value => {
+            if (value.data.successCount !== 1) {
+                notification.info({message: "上传失败"});
+            } else {
+                notification.success({message: "上传成功"})
             }
+        }).catch(err=>{
+            notification.info({message: "上传失败"});
+        })
+    }
+    onCreateAlbumCancel=()=>{
+        this.setState({createAlbumVisible: false})
+    }
+    onCreateAlbumOpen=()=>{
+        this.setState({createAlbumVisible: true})
+    }
+    onCreateAlbumSubmit=()=>{
+        const albumName = this.props.form.getFieldValue("albumName");
+        const albumDescription=this.props.form.getFieldValue("albumDescription")
+        Axios.post("/api/album/create",{
+            name:albumName,
+            description: albumDescription
+        }).then(value => {
+            if (value.data.status === "ok") {
+                message.success("相册创建成功!");
+            } else {
+                message.error("相册创建失败");
+            }
+        }).catch(err=>{
+            message.error("相册创建失败");
+        })
+        this.setState({createAlbumVisible:false},()=>{
+            location.reload();
         })
     }
     componentDidMount(): void {
@@ -144,6 +173,20 @@ class AlbumList extends Component<Props,State> {
                         <p></p>
                     </Dragger>
                 </Modal>
+                <Modal destroyOnClose onCancel={this.onCreateAlbumCancel} onOk={this.onCreateAlbumSubmit} visible={this.state.createAlbumVisible}>
+                    <Form>
+                        <FormItem label={"相册名称"}>
+                            {getFieldDecorator("albumName",{})(
+                                <Input  type={'text'}/>
+                            )}
+                        </FormItem>
+                        <FormItem label={"相册描述"}>
+                            {getFieldDecorator("albumDescription",{})(
+                                <Input  type={'text'}/>
+                            )}
+                        </FormItem>
+                    </Form>
+                </Modal>
                 <div className={style.body}>
                     <Row className={style.nav}>
                         <Logo title={'主页'}/>
@@ -154,7 +197,7 @@ class AlbumList extends Component<Props,State> {
                             </div>
                         </Col>
                         <Col span={3} offset={1} className={style["nav-buttons"]}>
-                            <Button>
+                            <Button onClick={this.onCreateAlbumOpen}>
                                 <Icon type="plus"/>创建
                             </Button>
                             <Button style={{marginLeft: 30}} onClick={this.onUploadClick}>

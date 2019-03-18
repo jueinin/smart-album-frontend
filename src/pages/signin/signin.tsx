@@ -18,13 +18,13 @@ class SignIn extends Component<Props,{}> {
 
     signin=()=>{
         // @ts-ignore
-        Axios.post("/api/login.do",{
+        Axios.post("/api/user/login",{
             username: this.username.current ? this.username.current.input.value : "",
-            password: this.username.current ? this.username.current.input.value : ""
+            password: this.username.current ? this.passwod.current.input.value : ""
         }).then(value => {
             const status = value.data.status as string;
             if (status == 'ok') {
-                this.props.history.push("/album");
+                this.props.history.push("/albumlist");
             }else if (status.startsWith("username")) {
                 notification.open({message:"用户名或者邮箱不存在"})
             }else if (status.startsWith("wrong")) {

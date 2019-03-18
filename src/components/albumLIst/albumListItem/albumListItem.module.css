@@ -2,6 +2,7 @@
     width: 200px;
     height: 200px;
     position: relative;
+    margin-left: 35px;
 }
 .img {
     width: 100%;
@@ -11,8 +12,8 @@
     position: absolute;
     right: 5px;
     top: 0;
-    background-color: grey;
-    opacity: 0.3;
+    background-color: black;
+    opacity: 0.4;
     color: #ffffff;
     font-size: 1.5rem;
     display: none;
