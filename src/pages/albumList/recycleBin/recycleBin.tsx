@@ -5,7 +5,6 @@ interface Columns {
     filesize: string;
     shareTime: string;
     method: string;
-    key:any
 }
 class RecycleBin extends Component {
     datasource: Columns[] = [
@@ -14,7 +13,6 @@ class RecycleBin extends Component {
             filesize: "133.6kb",
             shareTime: "2019-3-14",
             method:"删除",
-            key:"33"
         }
     ];
     render() {

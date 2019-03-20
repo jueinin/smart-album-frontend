@@ -1,0 +1,16 @@
+.img-col {
+    margin-bottom: 35px;
+}
+.more-icon {
+    position: absolute;
+    right: 5px;
+    top: 0;
+    background-color: black;
+    opacity: 0.4;
+    color: #ffffff;
+    font-size: 1.5rem;
+    display: none;
+}
+.img-col:hover .more-icon {
+    display: block;
+}

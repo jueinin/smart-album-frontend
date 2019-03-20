@@ -4,6 +4,8 @@ import style from './albumListItem.module.css';
 import {Button, Dropdown, Form, Icon, Input, Menu, message, Modal, Popconfirm, Radio, Tag, Tooltip} from "antd";
 import Axios from "axios";
 import {FormComponentProps} from "antd/lib/form";
+import PhotoList from "../../photoList/photoList";
+import CustomSpin from "../../CustomSpin/CustomSpin";
 interface Props extends FormComponentProps{
     id: string;
     cover:string;//url
@@ -16,22 +18,26 @@ interface Props extends FormComponentProps{
 }
 interface State {
     editVisible: boolean;
+    photoListData: { photoId: string,path: string }[];
 }
 class AlbumListItem extends Component<Props,State> {
     constructor(props:any) {
         super(props);
         this.state = {                                                                   //那个创建相册 底下不更新问题  到时候mobx解决下
-            editVisible: false
+            editVisible: false,
+            photoListData: undefined
         };
     }
     onOpenEditModal=()=>{
-        this.setState({editVisible: true},()=>{
-            if (!this.props.form.getFieldValue("isPublic")) {
-                this.props.form.setFieldsValue({
-                    isPublic: "isPrivate",
-                    albumName: "我的相册"
-                })
-            }
+        this.setState({editVisible: true},()=>{   //这个勉强能用了 可能还要改
+            //请求photolist
+            Axios.get('/api/album/photos',{
+                params:{albumId: this.props.id}
+            }).then(value => {
+                this.setState({photoListData: value.data})
+            }).catch(err=>{
+                message.error("获取相册列表失败")
+            })
         })
     }
     onSubmitEditModal=()=>{
@@ -52,6 +58,9 @@ class AlbumListItem extends Component<Props,State> {
             }
         })
     }
+    onSelectCoverClick=()=>{
+        //this.setState({showPhotoList: true})
+    }
     render() {
         const MenuItem = Menu.Item;
         const FormItem = Form.Item;
@@ -67,11 +76,10 @@ class AlbumListItem extends Component<Props,State> {
             </MenuItem>
             <MenuItem>下载相册</MenuItem>
         </Menu>;
-
         return (
             <div className={this.props.className}>
                 <div className={style.wrapper}>
-                    <Link to={'/'}>
+                    <Link to={'/albumlist/'+this.props.id}>
                         <img className={style.img} src={this.props.cover}/>
                         <h3 style={{marginTop: 15}}>{this.props.title}</h3>
                     </Link>
@@ -79,7 +87,7 @@ class AlbumListItem extends Component<Props,State> {
                         <Link to={'#'} className={style["more-icon"]}><Icon type="more"/></Link>
                     </Dropdown>
                 </div>
-                <Modal visible={this.state.editVisible} onCancel={this.onCloseEditModal} onOk={this.onSubmitEditModal}>
+                <Modal destroyOnClose visible={this.state.editVisible} onCancel={this.onCloseEditModal} onOk={this.onSubmitEditModal}>
                     <Form>
                         <FormItem label={'相册名'}>
                             {getFieldDecorator("albumName")(
@@ -92,16 +100,24 @@ class AlbumListItem extends Component<Props,State> {
                             )}
                         </FormItem>
                         <FormItem label={'隐私设置'}>
-                            {getFieldDecorator("isPublic")(
+                            {getFieldDecorator("isPublic",{initialValue:"isPublic"})(
                                 <RadioGroup>
                                     <Radio value={'isPublic'}>公开</Radio>
                                     <Radio value={'isPrivate'}>私密</Radio>
                                 </RadioGroup>
                             )}
                         </FormItem>
-                        <FormItem>
-
-                        </FormItem>
+                        {this.state.photoListData?<FormItem label={'选择封面'}>
+                            {getFieldDecorator("cover")(
+                                <RadioGroup className={style["photo-list"]}>
+                                    {this.state.photoListData.map(value => {
+                                        return <Radio key={value.photoId} value={value.photoId}>
+                                            <img style={{width:"100%"}} src={value.path}/>
+                                        </Radio>
+                                    })}
+                                </RadioGroup>
+                            )}
+                        </FormItem>:<CustomSpin/>}
                     </Form>
                 </Modal>
             </div>

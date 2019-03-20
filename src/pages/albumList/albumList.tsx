@@ -12,6 +12,7 @@ import {UploadChangeParam} from "antd/lib/upload";
 import {UploadFile} from "antd/lib/upload/interface";
 import {FormComponentProps} from "antd/lib/form";
 import Axios from "axios";
+import PhotosShow from "./phototsShow/photosShow";
 interface Props extends FormComponentProps{
 
 }
@@ -242,6 +243,7 @@ class AlbumList extends Component<Props,State> {
                                     <Route exact path={'/albumList'} component={AlbumList1}/>
                                     <Route path={'/albumList/share'} component={Share}/>
                                     <Route path={'/albumList/recycleBin'} component={RecycleBin}/>
+                                    <Route path={'/albumlist/:id'} component={PhotosShow}/>
                                 </Switch>
                             </div>
                         </Col>

@@ -25,3 +25,7 @@
     width: 50px;
 
 }
+.photo-list {
+    max-height: 600px;
+    overflow: auto;
+}
