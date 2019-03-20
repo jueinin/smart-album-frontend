@@ -11,7 +11,6 @@ import zhCN from 'antd/lib/locale-provider/zh_CN';
 import {LocaleProvider} from "antd";
 import SignIn from "./pages/signin/signin";
 import AlbumList from "./pages/albumList/albumList";
-import CustomDialog from "./components/dialog/customDialog";
 import Test from "./pages/Test/test";
 import PersonalCenter from "./pages/personalCenter/personalCenter";
 
