@@ -1,34 +1,59 @@
 import React, {Component} from 'react';
-import {Button, Table} from "antd";
+import {Button, message, Table} from "antd";
+import Axios from "axios";
+import {mockPath} from "../../../index";
+import {Data} from "unist";
+import CustomSpin from "../../../components/CustomSpin/CustomSpin";
 interface Columns {
-    filename: string;
-    filesize: string;
-    shareTime: string;
-    method: string;
+    fileName: string;
+    fileSize: string;
+    deleteTime: string;
 }
-class RecycleBin extends Component {
-    datasource: Columns[] = [
-        {
-            filename: "test.jpeg",
-            filesize: "133.6kb",
-            shareTime: "2019-3-14",
-            method:"删除",
-        }
-    ];
+interface DataItem extends Columns{
+    photoId: number;
+}
+interface State {
+    data: DataItem[];
+}
+class RecycleBin extends Component<{},State> {
+    constructor(props:any) {
+        super(props);
+        this.state={data: undefined}
+    }
+
+    getRecycleBinData=()=>{
+        Axios.get(mockPath+"/recyclebin").then(value => {
+            this.setState({data:value.data})
+        })
+    }
+    componentDidMount(): void {
+        this.getRecycleBinData();
+    }
+    permanentDelete=(photoId:number)=>{
+        Axios.post(mockPath+"/delete",{
+            photoId
+        }).then(value => {
+            if (value.data.status === "ok") {
+                message.success("删除成功");
+                this.getRecycleBinData();
+            }
+        })
+    }
     render() {
         const Column = Table.Column;
+        const that = this;
         return (
             <div>
-                <Table dataSource={this.datasource}>
-                    <Column title={"文件名"} key={'filename'} dataIndex={'filename'}/>
-                    <Column title={"文件大小"} key={'filesize'} dataIndex={'filesize'}/>
-                    <Column title={'分享时间'} key={'shareTime'} dataIndex={"shareTime"}/>
-                    <Column title={"操作"} key={'method'} dataIndex={'method'} render={(text:any,record)=>{
+                {this.state.data?<Table dataSource={this.state.data}>
+                    <Column title={"文件名"} key={'fileName'} dataIndex={'fileName'}/>
+                    <Column title={"文件大小"} key={'fileSize'} dataIndex={'fileSize'}/>
+                    <Column title={'分享时间'} key={'deleteTime'} dataIndex={"deleteTime"}/>
+                    <Column title={"操作"} key={'method'} dataIndex={'photoId'} render={(text:any,record)=>{
                         return <div>
-                            <Button>{text}</Button>
-                        </div>
+                            <Button onClick={() => that.permanentDelete(text)}>永久删除</Button>
+                        </div>;
                     }}/>
-                </Table>
+                </Table>:<CustomSpin/>}
             </div>
         );
     }

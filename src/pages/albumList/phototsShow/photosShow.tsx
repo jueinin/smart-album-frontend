@@ -26,7 +26,7 @@ class PhotosShow extends Component<Props, State> {
     }
 
     getPhotos=()=>{
-        Axios.get("/api/album/photos",{
+        Axios.get("/api/album/getAlbumPhotos",{
             params:{
                 albumId: this.props.match.params.id
             }
