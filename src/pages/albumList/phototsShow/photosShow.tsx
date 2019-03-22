@@ -94,9 +94,9 @@ class PhotosShow extends Component<Props, State> {
                 </MenuItem>
                 <MenuItem>下载相册</MenuItem>
             </Menu>;
-            return <Col key={number + ""} span={8} className={style["img-col"]}>
+            return <Col key={photoId + ""} span={8} className={style["img-col"]}>
                 <a href={path} target={"_blank"}>
-                    <img style={{width: "100%"}} src={path}/>
+                    <img style={{width: "100%"}} src={"/api/photo/show?photoId="+photoId}/>
                 </a>
                 <Dropdown overlay={overlay}>
                     <Link to={'#'} className={style["more-icon"]}><Icon type="more"/></Link>

@@ -1,0 +1,33 @@
+.logo {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    height: 100%;
+}
+.nav {
+    height: 7%;
+}
+.height100 {
+    height: 100%;
+}
+.right-content {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: flex-start;
+//text-align: center;
+}
+.right-content>:global(.ant-row) {
+    text-align: center;
+    width: 100%;
+}
+.avatar {
+    height: 80px;
+}
+.right-middle {
+    display: flex;
+    flex-direction: column;
+}
+.right-middle :global(.ant-row) {
+
+}

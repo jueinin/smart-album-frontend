@@ -3,7 +3,12 @@ import styleAlbum from '../albumList/albumList.module.css';
 import style from './personalCenter.module.css';
 import {Button, Col, Divider, Menu, Row} from "antd";
 import Logo from "../../components/logo/logo";
-import {Link} from "react-router-dom";
+import {Link, Route} from "react-router-dom";
+import PersonalCenter1 from "./personalCenter/personalCenter";
+import PersonalCenterInfo from "./personalCenterInfo/personalCenterInfo";
+import Password from "./password/password";
+import ModifyPersonalInfo from "./modifyPersonalInfo/modifyPersonalInfo";
+import Notification from './notification/notification';
 class PersonalCenter extends Component {
     render() {
         return (
@@ -26,7 +31,7 @@ class PersonalCenter extends Component {
                                     <Link to={"/personalCenter"}>首页</Link>
                                 </Menu.Item>
                                 <Menu.Item>
-                                    <Link to={"/personalCenter"}>个人信息</Link>
+                                    <Link to={"/personalCenter/info"}>个人信息</Link>
                                 </Menu.Item>
                                 <Menu.Item>
                                     <Link to={"/personalCenter"}>数据和个性化</Link>
@@ -50,25 +55,11 @@ class PersonalCenter extends Component {
                             </Menu>
                         </Col>
                         <Col span={20} offset={2} className={style["right-content"]}>
-                            <Row>
-                                <img src={"http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u0.png"}/>
-                            </Row>
-                            <Row>
-                                欢迎回来
-                            </Row>
-                            <Row>
-                                艾菲奖厚爱u好的佛啊u哈佛iu阿红俘虏后
-                            </Row>
-                            <Row className={style["right-middle"]}>
-                                <Row>
-                                    <Col span={10}>fasfasf</Col>
-                                    <Col span={10}>faddists</Col>
-                                </Row>
-                                <Row>
-                                    <Col span={10}>fasfasf</Col>
-                                    <Col span={10}>fsdfgsdgs</Col>
-                                </Row>
-                            </Row>
+                            <Route exact path={"/personalCenter"} component={PersonalCenter1}/>
+                            <Route path={"/personalCenter/info"} component={PersonalCenterInfo}/>
+                            <Route path={"/personalCenter/password"} component={Password}/>
+                            <Route path={"/personalCenter/modifyInfo"} component={ModifyPersonalInfo}/>
+                            <Route path={"/personalCenter/notification"} component={Notification}/>
                         </Col>
                     </Row>
                 </div>

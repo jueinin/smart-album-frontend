@@ -22,7 +22,7 @@ class AlbumList extends Component<{},State> {
     }
 
     getAlbumList=()=>{
-        Axios.get("/api/album/").then(value => {
+        Axios.get("/api/album/getAlbumList").then(value => {
             this.setState({data: value.data})
         }).catch(err=>{
             message.error("获取内容失败,请重试")

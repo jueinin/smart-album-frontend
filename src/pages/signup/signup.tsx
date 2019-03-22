@@ -1,6 +1,6 @@
-import React, {Component} from 'react';
+import React, {Component, FormEvent} from 'react';
 import style from './signup.module.css';
-import {Button, Col, Row, Form, Input, Icon, notification} from "antd";
+import {Button, Col, Row, Form, Input, Icon, notification, message} from "antd";
 import {FormComponentProps} from "antd/lib/form";
 import {Link, RouteComponentProps} from "react-router-dom";
 import Axios from "axios";
@@ -8,48 +8,59 @@ interface Props extends FormComponentProps , RouteComponentProps {
 
 }
 class Signup extends Component<Props,{}> {
-    compareFirstPssword=(rules:any,value:any,callback:any)=>{
-        console.log(value+this.props.form.getFieldValue("password"))
+    compareFirstPassword=(rules:any,value:any,callback:any)=>{
+        //console.log(value+this.props.form.getFieldValue("password"))
         if (value && value !== this.props.form.getFieldValue("password")) {
             callback("两次输入密码不一致!")
+            return;
         }
+        callback();
     }
     usernameVlidate=(rules:any,value:string,callback:any)=>{
         if (value.includes("@")) {
             callback("用户名不能有@")
+            return;
         }
+        callback();
     }
     loginButton=()=>{
         this.props.history.push("/signin");
     }
-    registry=()=>{
+    registry=(e:FormEvent)=>{
         //发注册请求
         //data = JSON.stringify(data);
-        Axios.post("/api/user/register", {
-                    username: this.props.form.getFieldValue("username"),
-                    password: this.props.form.getFieldValue("password"),
-                    email: this.props.form.getFieldValue("email")
+        e.preventDefault();
+        this.props.form.validateFields((err, values) => {
+            if (!err) {
+                Axios.post("/api/user/register", {
+                        username: this.props.form.getFieldValue("username"),
+                        password: this.props.form.getFieldValue("password"),
+                        email: this.props.form.getFieldValue("email")
+                    }
+                ).then(value => {
+                    let status = value.data.status as string;
+                    if (status == "ok") {
+                        this.props.history.push("/albumlist");
+                    } else if (status.startsWith("user")) {
+                        notification.info({
+                            message:"用户名已经被注册了"
+                        })
+                    }else if (status.startsWith("email")) {
+                        notification.info({
+                            message: "邮箱已经被注册"
+                        })
+                    }else {
+                        notification.info({
+                            message:"账号密码错误,请重试"
+                        })
+                    }
+                }).catch(err=>{
+                    notification.info({message:"因不可抗力,注册失败了"})
+                })
+            } else {
+                message.error("请检查输入内容");
             }
-        ).then(value => {
-            let status = value.data.status as string;
-            if (status == "ok") {
-                this.props.history.push("/albumlist");
-            } else if (status.startsWith("user")) {
-                notification.info({
-                    message:"用户名已经被注册了"
-                })
-            }else if (status.startsWith("email")) {
-                notification.info({
-                    message: "邮箱已经被注册"
-                })
-            }else {
-                notification.info({
-                    message:"账号密码错误,请重试"
-                })
-            }
-        }).catch(err=>{
-            notification.info({message:"因不可抗力,注册失败了"})
-        })
+        });
     }
     render() {
         const FormItem = Form.Item;
@@ -72,7 +83,7 @@ class Signup extends Component<Props,{}> {
                         </Col>
                     </Row>
                     <Row className={style.form}>
-                        <Form className={style["inner-form"]} layout={"vertical"}>
+                        <Form className={style["inner-form"]} layout={"vertical"} onSubmit={this.registry}>
                             <FormItem label={"用户名"}>
                                 {getFieldDecorator('username', {
                                     rules: [{
@@ -102,7 +113,7 @@ class Signup extends Component<Props,{}> {
                                             required:true,message:"请输入确认密码",type:"string"
                                         },
                                         {
-                                            validator: this.compareFirstPssword
+                                            validator: this.compareFirstPassword
                                         }
                                     ]
                                 })(
@@ -119,7 +130,7 @@ class Signup extends Component<Props,{}> {
                                 )}
                             </FormItem>
                             <FormItem>
-                                <Button type={"primary"} block size={"large"} onClick={this.registry}>注册</Button>
+                                <Button type={"primary"} block size={"large"} htmlType={"submit"}>注册</Button>
                             </FormItem>
                         </Form>
                     </Row>

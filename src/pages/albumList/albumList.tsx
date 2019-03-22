@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Button, Col, Form, Icon, Input, Menu, message, Modal, notification, Radio, Row, Upload} from "antd";
+import {Button, Col, Form, Icon, Input, Menu, message, Modal, notification, Radio, Row, Select, Upload} from "antd";
 import Logo from '../../components/logo/logo';
 import style from './albumList.module.css';
 import SizeProgress from "../../components/sizeProgress/sizeProgress";
@@ -13,8 +13,13 @@ import {UploadFile} from "antd/lib/upload/interface";
 import {FormComponentProps} from "antd/lib/form";
 import Axios from "axios";
 import PhotosShow from "./phototsShow/photosShow";
+import CustomSpin from "../../components/CustomSpin/CustomSpin";
 interface Props extends FormComponentProps{
 
+}
+interface AlbumListProps{
+    albumId: number;
+    name: string;
 }
 interface State {
     uploadModalVisible: boolean;
@@ -23,12 +28,13 @@ interface State {
     uploadMultipleVisible: boolean;
     createAlbumVisible: boolean;
     uploadMultipleFiles: File[];
+    albumList: AlbumListProps[];
 }
 class AlbumList extends Component<Props,State> {
     constructor(props:any) {
         super(props);
         this.state={uploadModalVisible: false, uploadFileNames: [], uploadFiles: undefined, uploadMultipleVisible: false,
-            uploadMultipleFiles: undefined, createAlbumVisible: false}
+            uploadMultipleFiles: undefined, createAlbumVisible: false, albumList: undefined}
     }
     onUploadClick=()=>{
         this.setState({uploadModalVisible: true})//图片名称 图片描述 是否公开默认不公开
@@ -57,12 +63,14 @@ class AlbumList extends Component<Props,State> {
         const photoDescription = this.props.form.getFieldValue("photoDescription");
         const isPublic = this.props.form.getFieldValue("isPublic");
         const file = this.state.uploadFiles[0].originFileObj
+        const albumId = this.props.form.getFieldValue("albumId");
         let formData = new FormData();
         formData.set("name", photoName);
         formData.set("description", photoDescription);
         // @ts-ignore
         formData.set("isPublic", isPublic == "isPublic" ? 1 : 0);
         formData.set("file", file);
+        formData.set("albumId", albumId);
         Axios.post("/api/photo/upload", formData,{
             headers: {
                 'Content-Type': 'multipart/form-data'
@@ -116,7 +124,18 @@ class AlbumList extends Component<Props,State> {
             location.reload();
         })
     }
+    getAlbumList=()=>{
+        Axios.get("/api/album/getAlbumList").then(value => {
+            this.setState({albumList: value.data})
+        })
+    }
+    getPersonalInfo = () => {
+        //获取个头像啊什么的  那个存储空间
+        
+    };
+
     componentDidMount(): void {
+        this.getAlbumList();
     }
 
     render() {
@@ -160,8 +179,18 @@ class AlbumList extends Component<Props,State> {
                                     return <p key={index}>{value}</p>;
                                 })}
                             </div>
+                            <FormItem label={"选择相册"}>
+                                {getFieldDecorator("albumId")(
+                                    <Select>
+                                        {this.state.albumList?this.state.albumList.map((value, index) => {
+                                            return <Select.Option key={index + ""}
+                                                                  value={value.albumId}>{value.name}</Select.Option>;
+                                        }):<CustomSpin/>}
+                                    </Select>
+                                )}
+                            </FormItem>
                             <FormItem className={style["upload-modal-submit"]}>
-                                <Button type={"primary"} onClick={this.onUploadSubmit}>提交</Button>
+                                <Button htmlType={"submit"} type={"primary"} onClick={this.onUploadSubmit}>提交</Button>
                             </FormItem>
                         </Form>
                     </div>

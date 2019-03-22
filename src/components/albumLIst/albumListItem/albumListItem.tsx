@@ -80,7 +80,7 @@ class AlbumListItem extends Component<Props,State> {
             <div className={this.props.className}>
                 <div className={style.wrapper}>
                     <Link to={'/albumlist/'+this.props.id}>
-                        <img className={style.img} src={this.props.cover}/>
+                        <img className={style.img} src={"/api/photo/show?photoId="+this.props.cover}/>
                         <h3 style={{marginTop: 15}}>{this.props.title}</h3>
                     </Link>
                     <Dropdown overlay={overlay}>
