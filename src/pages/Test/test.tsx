@@ -1,12 +1,19 @@
 import React, {Component} from 'react';
 import {Button} from "antd";
 import CustomDialog from "../../components/dialog/customDialog";
+import {RouteComponentProps} from "react-router";
+import {mockPath} from "../../index";
+import Axios from "axios";
 interface State {
     show: boolean;
 }
-class Test extends Component<{},State> {
+class Test extends Component<RouteComponentProps,State> {
     onClick=()=>{
-        this.setState({show:!this.state.show})
+        Axios.get(`${mockPath}/api/test`).then(value => {
+            console.log(value);
+        }).catch(error=>{
+            console.log("test",error)
+        })
     }
 
     constructor(props:any) {

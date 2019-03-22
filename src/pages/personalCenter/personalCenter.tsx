@@ -1,27 +1,40 @@
 import React, {Component} from 'react';
 import styleAlbum from '../albumList/albumList.module.css';
 import style from './personalCenter.module.css';
-import {Button, Col, Divider, Menu, Row} from "antd";
+import {Button, Col, Divider, Menu, message, Row} from "antd";
 import Logo from "../../components/logo/logo";
-import {Link, Route} from "react-router-dom";
+import {Link, Route, RouteComponentProps} from "react-router-dom";
 import PersonalCenter1 from "./personalCenter/personalCenter";
 import PersonalCenterInfo from "./personalCenterInfo/personalCenterInfo";
 import Password from "./password/password";
 import ModifyPersonalInfo from "./modifyPersonalInfo/modifyPersonalInfo";
 import Notification from './notification/notification';
-class PersonalCenter extends Component {
+import Axios from "axios";
+import {mockPath} from "../../index";
+class PersonalCenter extends Component<RouteComponentProps,{}> {
+    exitLogin=()=>{
+        Axios.post(`${mockPath}/api/user/logout`).then(value => {
+            if (value.data.status === 'ok') {
+                message.success("退出成功");
+                this.props.history.push("/");
+            }
+        })
+    }
     render() {
         return (
             <div>
                 <div className={styleAlbum.body}>
                     <Row className={style.nav}>
-                        <Col className={style.height100}>
+                        <Col span={6} className={style.height100}>
                             <Link to={"/"} className={style.logo}>
                                 <img style={{height: "100%"}}
                                      src={"http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u0.png"}/>
                                 <img style={{height: "100%"}}
                                      src={"http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u53.png"}/>
                             </Link>
+                        </Col>
+                        <Col span={2} offset={16}>
+                            <Button onClick={this.exitLogin}>退出登录</Button>
                         </Col>
                     </Row>
                     <Row>

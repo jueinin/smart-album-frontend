@@ -8,15 +8,38 @@ import 'antd/dist/antd.css'
 import './index.css'
 import SignUp from "./pages/signup/signup";
 import zhCN from 'antd/lib/locale-provider/zh_CN';
-import {LocaleProvider} from "antd";
+import {LocaleProvider, Modal} from "antd";
 import SignIn from "./pages/signin/signin";
 import AlbumList from "./pages/albumList/albumList";
 import CustomDialog from "./components/dialog/customDialog";
 import Test from "./pages/Test/test";
 import PersonalCenter from "./pages/personalCenter/personalCenter";
+import Axios from "axios";
 
 export const mockPath = "http://120.79.239.103:8080/mock/16/mockapi";
-
+Axios.interceptors.response.use(value => {
+    return value;
+},(err:any)=>{
+    console.log("inmdex",err);
+    if (err.response.status===401) {
+        Modal.error({title:"您的会话已过期,请重新登录",
+                cancelText: "",
+                okText:"好的",
+                onOk:()=>{
+                    window.location.href = "/";
+                }
+            })
+        return;
+    }
+    return Promise.reject(err)
+    // Modal.error({title:"您的会话已过期,请重新登录",
+    //     cancelText: "",
+    //     okText:"好的",
+    //     onOk:()=>{
+    //         window.location.href = "/";
+    //     }
+    // })
+})
 ReactDOM.render(
     <div>
         <LocaleProvider locale={zhCN}>

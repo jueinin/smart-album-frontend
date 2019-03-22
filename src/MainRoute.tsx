@@ -4,6 +4,7 @@ import GeneralTemplate from "./components/generalTemplate/GeneralTemplate";
 import IndexPage from "./pages/indexPage/indexPage";
 
 class MainRoute extends Component {
+
     render() {
         return (
             <div>

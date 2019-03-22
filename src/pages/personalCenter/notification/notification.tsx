@@ -2,84 +2,136 @@ import React, {Component} from 'react';
 import style from './notification.module.css';
 import Row from "antd/lib/grid/row";
 import Col from "antd/lib/grid/col";
-import {Button, Table} from "antd";
-import {computed, observable} from "mobx";
+import {Button, message, Table} from "antd";
+import {action, computed, observable} from "mobx";
 import {observer} from "mobx-react";
-class Todo {
-    id = Math.random();
-    @observable title = "";
-    @observable finished = false;
-
-    constructor(title: string) {
-        this.title = title;
-    }
+import Axios from "axios";
+import {mockPath} from "../../../index";
+import {TableRowSelection} from "antd/lib/table";
+interface NotificationItem {
+    type: "system" | "like";
+    content: string;
+    time: string;
+    id: number;
 }
-class TodoList {
-    @observable todos: Todo[] = [];
-    @computed get unfinishedTodoCount(){
-        return this.todos.filter(value => !value.finished).length;
-    }
-}
-interface ViewProps {
-    todo:Todo
-}
-@observer
-class TodoView extends Component<ViewProps,{}>{
-    todo = this.props.todo;
-    click=()=>{
-        this.todo.finished = !this.todo.finished;
-    }
-    render(){
-        return <li>
-            <input type={"checkbox"}
-            checked={this.props.todo.finished}
-            onClick={this.click}/>
-        </li>
+class NotificationMobx {
+    @observable notifications: NotificationItem[]=[];
+    @action
+    getNotification(){
+        Axios.get(`${mockPath}/api/user/notification`).then(value => {
+            this.notifications = value.data;
+        })
     }
 }
 
-@observer
-class TodoListView extends Component<TodoList,{}>{
-    render(): React.ReactNode {
-        return <div>
-            <ul>
-                {this.props.todos.map((value, index) => {
-                    return <TodoView todo={value}/>;
-                })}
-            </ul>
-            task left: {this.props.unfinishedTodoCount}
-        </div>
-    }
+let notimobx = new NotificationMobx();
+interface Props {
+    notifications: NotificationItem[];
 }
-class Notification extends Component {
+interface State {
+    showNotifications: NotificationItem[];
+    selectedId: string[];
+}
+@observer
+class Notification extends Component<Props,State> {
+    state:State={
+        showNotifications: this.props.notifications, selectedId: undefined
+    }
+    componentDidMount(): void {
+        notimobx.getNotification();
+        this.setState({showNotifications: this.props.notifications})
+    }
+    componentWillReceiveProps(nextProps: Readonly<Props>, nextContext: any): void {
+        this.setState({showNotifications: nextProps.notifications})
+    }
+
+    onAllNoti=()=>[
+        this.setState({showNotifications: this.props.notifications})
+    ]
+    onSystemNoti=()=>{
+        this.setState({showNotifications:this.props.notifications.filter((value, index) => {   // //axios 配置401跳转  mobx
+                return value.type === "system";
+            })})
+    }
+    onLikeNoti=()=>{
+        this.setState({showNotifications:this.props.notifications.filter((value, index) => {   // //axios 配置401跳转  mobx
+                return value.type === "like";
+            })})
+    }
+    rowSelection:TableRowSelection<NotificationItem>={
+        onChange:((selectedRowKeys, selectedRows) => {
+            this.setState({selectedId: selectedRowKeys as string[]})
+        })
+    }
+    deleteMessage=()=>{
+        let deletedMessage = this.state.selectedId;
+        const data={
+            deletedMessage: deletedMessage
+        }
+        Axios.post(`${mockPath}/api/user/deleteNotifications`,data).then(value => {
+            if (value.data.status === 'ok') {
+                message.success("删除成功");
+                notimobx.getNotification();
+            }
+        })
+    }
+    deleteAllMessage=()=>{
+        let ids = this.state.showNotifications.map(value => value.id + "");
+        const data={
+            deletedMessage: ids
+        }
+        Axios.post(`${mockPath}/api/user/deleteNotifications`,data).then(value => {
+            if (value.data.status === 'ok') {
+                message.success("删除成功");
+                notimobx.getNotification();
+            }
+        })
+    }
     render() {
-        // const Column = Table.Column;
-        //         // return (
-        //         //     <Col span={24}>
-        //         //         <Row>
-        //         //             <Col offset={2} span={4}>
-        //         //                 <Button>全部通知</Button>  //axios 配置401跳转  mobx
-        //         //             </Col>
-        //         //             <Col offset={2} span={4}>
-        //         //                 <Button>系统通知</Button>
-        //         //             </Col>
-        //         //             <Col offset={2} span={4}>
-        //         //                 <Button>赞通知</Button>
-        //         //             </Col>
-        //         //         </Row>
-        //         //         <div>
-        //         //             <Table>
-        //         //                 <Table.Column key={''}/>
-        //         //             </Table>
-        //         //         </div>
-        //         //     </Col>
-        //         // );
-
-        let store = new TodoList();
-        store.todos.push(new Todo("coffee"));
-        store.todos.push(new Todo("tea"));
-        return <TodoListView todos={store.todos} unfinishedTodoCount={store.unfinishedTodoCount}/>;
+        let data=this.state.showNotifications.map((value, index) => {
+            // @ts-ignore
+            value.key = value.id + "";
+            return value
+        })
+        return (
+            <Col span={24}>
+                <Row>
+                    <Col offset={2} span={4}>
+                        <Button onClick={this.onAllNoti}>全部通知</Button>
+                    </Col>
+                    <Col offset={2} span={4}>
+                        <Button onClick={this.onSystemNoti}>系统通知</Button>
+                    </Col>
+                    <Col offset={2} span={4}>
+                        <Button onClick={this.onLikeNoti}>赞通知</Button>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col offset={2} span={4}>
+                        <Button onClick={this.deleteMessage}>删除通知</Button>
+                    </Col>
+                    <Col offset={2} span={4}>
+                        <Button onClick={this.deleteAllMessage}>清空通知</Button>
+                    </Col>
+                </Row>
+                <div>
+                    <Table dataSource={data} rowSelection={this.rowSelection}>
+                        <Table.Column  dataIndex={"content"} title={"通知内容"}/>
+                        <Table.Column dataIndex={"time"} title={"通知时间"}/>
+                        <Table.Column dataIndex={"type"} title={"通知人"}/>
+                    </Table>
+                </div>
+            </Col>
+        );
+    }
+}
+@observer
+class NotificationWrapper extends Component{
+    render(){
+        return <React.Fragment>
+            <Notification notifications={notimobx.notifications}/>
+        </React.Fragment>
     }
 }
 
-export default Notification;
+export default NotificationWrapper;
