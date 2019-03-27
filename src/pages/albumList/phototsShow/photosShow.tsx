@@ -5,16 +5,16 @@ import CustomSpin from "../../../components/CustomSpin/CustomSpin";
 import {Col, Dropdown, Form, Icon, Input, Menu, message, Modal, Popconfirm, Radio, Row} from "antd";
 import {Link} from "react-router-dom";
 import style from './photosShow.module.css';
-import {number} from "prop-types";
 import {FormComponentProps} from "antd/lib/form";
+import {photoListMobx, PhotoProperties} from "../../../mobx/photoListMobx";
+import {picThumbnailUrlPrefix, picUrlPrefix} from "../../../index";
 interface RouteParams{
     id: string;
 }
 interface Props extends RouteComponentProps<RouteParams>,FormComponentProps{
-
+    data: PhotoProperties[];
 }
 interface State {
-    data: { photoId: number, path: string }[];
     editVisible: boolean;
     selectedPhotoId: number;
 }
@@ -22,20 +22,7 @@ interface State {
 class PhotosShow extends Component<Props, State> {
     constructor(props:any) {
         super(props);
-        this.state={data:undefined, editVisible: false, selectedPhotoId: undefined}
-    }
-
-    getPhotos=()=>{
-        Axios.get("/api/album/getAlbumPhotos",{
-            params:{
-                albumId: this.props.match.params.id
-            }
-        }).then(value => {
-            this.setState({data: value.data})
-        })
-    }
-    componentDidMount(): void {
-        this.getPhotos();
+        this.state={editVisible: false, selectedPhotoId: undefined}
     }
     onEditSubmit=()=>{
         const photoName = this.props.form.getFieldValue("photoName");
@@ -72,7 +59,8 @@ class PhotosShow extends Component<Props, State> {
         }]).then(value => {
             if (value.data.status === "ok") {
                 message.success("删除成功");
-                this.getPhotos();
+                //添加更新
+                photoListMobx.updatePhotos(this.props.location.pathname);
             } else {
                 message.error("删除失败");
             }
@@ -84,7 +72,7 @@ class PhotosShow extends Component<Props, State> {
         const that = this;
         const MenuItem = Menu.Item;
         const getFieldDecorator = this.props.form.getFieldDecorator;
-        let Item = function (path: string, index: number, photoId: number) {
+        let Item = function (index: number, photoId: number) {
             const overlay = <Menu>
                 <MenuItem onClick={() => that.onEditClick(photoId)}>编辑</MenuItem>
                 <MenuItem>
@@ -95,13 +83,13 @@ class PhotosShow extends Component<Props, State> {
                 <MenuItem>下载相册</MenuItem>
             </Menu>;
             return <Col key={photoId + ""} span={8} className={style["img-col"]}>
-                <a href={path} target={"_blank"}>
-                    <img style={{width: "100%"}} src={"/api/photo/show?photoId="+photoId}/>
+                <a href={picUrlPrefix + photoId} target={"_blank"}>
+                    <img style={{width: "100%"}} src={picThumbnailUrlPrefix + photoId}/>
                 </a>
                 <Dropdown overlay={overlay}>
                     <Link to={'#'} className={style["more-icon"]}><Icon type="more"/></Link>
                 </Dropdown>
-            </Col>
+            </Col>;
         };
         return (
             <div>
@@ -131,9 +119,9 @@ class PhotosShow extends Component<Props, State> {
                     </Form>
                 </Modal>
                 <Row gutter={32}>
-                    {this.state.data ? <React.Fragment>
-                        {this.state.data.map((value, index) => {
-                            return Item(value.path, index, value.photoId)
+                    {this.props.data ? <React.Fragment>
+                        {this.props.data.map((value, index) => {
+                            return Item(index, value.photoId)
                         })}
                     </React.Fragment> : <CustomSpin/>}
                 </Row>

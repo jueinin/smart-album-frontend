@@ -15,8 +15,12 @@ import CustomDialog from "./components/dialog/customDialog";
 import Test from "./pages/Test/test";
 import PersonalCenter from "./pages/personalCenter/personalCenter";
 import Axios from "axios";
+import {albumListMobx} from "./mobx/albumListMobx";
+import AlbumListWrapper from "./pages/albumList/albumListWrapper";
 
 export const mockPath = "http://120.79.239.103:8080/mock/16/mockapi";
+export const picUrlPrefix = "/api/photo/show?photoId=";
+export const picThumbnailUrlPrefix="/api/photo/showThumbnail?photoId="
 Axios.interceptors.response.use(value => {
     return value;
 },(err:any)=>{
@@ -41,18 +45,18 @@ Axios.interceptors.response.use(value => {
     // })
 })
 ReactDOM.render(
-    <div>
-        <LocaleProvider locale={zhCN}>
-            <BrowserRouter>
-                <Switch>
-                    <Route path={"/signin"} component={SignIn}/>
-                    <Route path={"/signup"} component={SignUp}/>
-                    <Route path={'/albumlist'} component={AlbumList}/>
-                    <Route path={"/personalCenter"} component={PersonalCenter}/>
-                    <Route path={'/test'} component={Test}/>
-                    <Route path={'/'} component={MainRoute}/>
-                </Switch>
-            </BrowserRouter>
-        </LocaleProvider>
-    </div>, document.getElementById('root'));
+  <div>
+    <LocaleProvider locale={zhCN}>
+      <BrowserRouter>
+        <Switch>
+          <Route path={"/signin"} component={SignIn}/>
+          <Route path={"/signup"} component={SignUp}/>
+          <Route path={'/albumlist'} component={AlbumListWrapper}/>  {/* mobx 可以直接套render  就是最外层需要个wrapper*/}
+          <Route path={"/personalCenter"} component={PersonalCenter}/>
+          <Route path={'/test'} component={Test}/>
+          <Route path={'/'} component={MainRoute}/>
+        </Switch>
+      </BrowserRouter>
+    </LocaleProvider>
+  </div>, document.getElementById('root'));
 

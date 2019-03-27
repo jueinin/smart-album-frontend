@@ -3,6 +3,7 @@
     flex-direction: row;
     justify-content: flex-start;
     padding: 30px;
+    flex-wrap: wrap;
 }
 .margin-left {
     margin-left: 25px;

@@ -1,7 +1,10 @@
 import React, {Component} from 'react';
+import 'antd/dist/antd.css'
+import style from './indexPage.module.css';
 import {Button, Col, Input, Row} from "antd";
 import {Link} from "react-router-dom";
-import style from './indexPage.module.css';
+import Navbar from "../../components/navbar/navbar";
+import NavbarLink from "../../components/navbar/navbarLink/navbarLink";
 class IndexPage extends Component {
     onSearch=()=>{
         //search
@@ -11,16 +14,16 @@ class IndexPage extends Component {
         return (
             <div>
                 <div className={style["top-bar"]}>
-                    <Row style={{paddingTop: 25}}>
-                        <Col span={4} offset={20}>
-                            <Link className={style["black-link"]} to={'/signin'}>登录</Link>&nbsp;|&nbsp;
-                            <Link className={style["black-link"]} to={'/signup'}>注册</Link>
-                        </Col>
-                    </Row>
+                    <Navbar>
+                        <NavbarLink active title={"首页"} path={'/'}/>
+                        <NavbarLink  title={"个人主页"} path={'/albumlist'}/>
+                        <NavbarLink title={"登录"} path={'/signin'} offset={13}/>
+                        <NavbarLink title={'注册'} path={'/signup'} linkClassName={style['active-link']}/>
+                    </Navbar>
                     <Row>
                         <Col className={style["search-bar-wrapper"]} span={8} offset={8}>
                             <div>
-                                <img src={"http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u0.png"}/>
+                                <h2 className={style.title}>欢迎来到NEWBEE</h2>
                                 <div className={style["search-input-wrapper"]}>
                                     <Input className={style["search-input"]} allowClear
                                            placeholder={"请输入关键字进行搜索"}/><Button type={"primary"}>搜索</Button>
@@ -31,58 +34,61 @@ class IndexPage extends Component {
                 </div>
                 <Row>
                     <Col span={24}>
-                        <h1 style={{textAlign: "center"}}>服务支持</h1>
+                        <h1 style={{textAlign: "center",fontWeight:800}}>服务支持</h1>
                     </Col>
                 </Row>
                 <div className={style["content-item-wrapper"]}>
                     <div className={style["content-item"]}>
                         <div>
+                            <img className={style['content-icon']} src={'http://jueinin.oss-cn-hongkong.aliyuncs.com/smart-album/%E8%B6%85%E5%A4%A7%E5%AD%98%E5%82%A8%E7%A9%BA%E9%97%B4logo.png'}/>
                             <h3>超大存储空间</h3>
                             <p>
-                                这里有文字介绍
+                                免费帐户1G存储空间
                             </p>
                             <p>
-                                这里有文字介绍
+                                VIP每月10G存储空间
                             </p>
                             <p>
-                                这里有文字介绍
+                                超级VIP每月100G存储空间
                             </p>
                             <p>
-                                这里有文字介绍
+                                终生会员不限存储空间
                             </p>
                         </div>
                     </div>
                     <div className={style["content-item"]}>
                         <div>
-                            <h3>超大存储空间</h3>
+                            <img className={style['content-icon']} src={'http://jueinin.oss-cn-hongkong.aliyuncs.com/smart-album/%E6%99%BA%E8%83%BD%E4%BA%91%E5%AD%98%E5%82%A8%E6%8A%80%E6%9C%AF.png'}/>
+                            <h3>智能云存储技术</h3>
                             <p>
-                                这里有文字介绍
+                               急速上传云端
                             </p>
                             <p>
-                                这里有文字介绍
+                               自动分类照片至云端
                             </p>
                             <p>
-                                这里有文字介绍
+                                多人云端管理相册
                             </p>
                             <p>
-                                这里有文字介绍
+                                照片可打包快速下载至本地
                             </p>
                         </div>
                     </div>
                     <div className={style["content-item"]}>
                         <div>
-                            <h3>超大存储空间</h3>
+                            <img className={style['content-icon']} src={'http://jueinin.oss-cn-hongkong.aliyuncs.com/smart-album/%E8%AF%AF%E5%88%A0%E6%89%BE%E5%9B%9E%E7%85%A7%E7%89%87.png'}/>
+                            <h3>误删找回照片</h3>
                             <p>
-                                这里有文字介绍
+                                照片意外删除可找回
                             </p>
                             <p>
-                                这里有文字介绍
+                                误分享可撤回
                             </p>
                             <p>
-                                这里有文字介绍
+                                免费用户每月三次找回功能
                             </p>
                             <p>
-                                这里有文字介绍
+                                超级VIP每月100次找回机会
                             </p>
                         </div>
                     </div>
@@ -97,8 +103,14 @@ class IndexPage extends Component {
                         我是推荐
                     </Col>
                 </Row>
-                <Row>
-                    <Col className={style.footer} span={24}>京网文[2013]0934-983号 Copyright ©2019 Newbee</Col>
+                <Row className={style.footer}>
+                    <Col span={24}>
+                        <Link to={'/'}>关于图片</Link>
+                        <Link to={'/'}>意见反馈</Link>
+                        <Link to={'/'}>常见问题</Link>
+                        <Link to={'/'}>客户服务</Link>
+                    </Col>
+                    <Col span={24}>京网文[2013]0934-983号 Copyright ©2019 Newbee</Col>
                 </Row>
             </div>
         );

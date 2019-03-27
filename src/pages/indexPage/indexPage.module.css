@@ -1,6 +1,15 @@
 .black-link {
     color: #000;
 }
+.active-link {
+    padding: 10px 30px;
+    color: #ffffff;
+    background-color: springgreen;
+}
+.title {
+    letter-spacing: 5px;
+    color: #ffffff;
+}
 .top-bar {
     height: 80vh;
     background-image: url("http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u2.jpg");
@@ -21,8 +30,13 @@
 }
 .search-input-wrapper {
     border: 2px solid black;
-    padding: 5px;
+    height: 45px;
     display: flex;
+}
+.search-input-wrapper :global(.ant-btn) {
+    border: none;
+    height: 41px;
+    background-color: springgreen;
 }
 .bottom-content {
     padding: 20px 50px;
@@ -32,13 +46,26 @@
     justify-content: space-around;
 }
 .content-item {
-
+    text-align: center;
+}
+.content-icon {
+    height: 30px;
+    width: 30px;
+    margin-bottom: 10px;
+}
+.content-item :global(h3) {
+    font-weight: 900;
+    font-size: 1.35rem;
 }
 .footer {
     background-color: grey;
     text-align: center;
     color: #ffffff;
     padding: 40px 0;
+}
+.footer a {
+    color: #ffffff;
+    margin-left: 10px;
 }
 .promotiom {
     width: 100%;

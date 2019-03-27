@@ -4,13 +4,13 @@
     top: 10%;
 }
 .body {
-    background-image: url("http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/bg.jpg");
+    background-image: url("http://jueinin.oss-cn-hongkong.aliyuncs.com/smart-album/%E7%99%BB%E5%BD%95%E8%83%8C%E6%99%AF%E5%9B%BE.jpg");
     height: 100vh;
     background-size: cover;
 }
 .inner-form {
     padding: 35px;
-    background-image: url("http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u42.png");
+    background-color: #ffffff;
     background-size: cover;
     width: 350px;
 }

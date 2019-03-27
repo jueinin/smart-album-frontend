@@ -1,0 +1,10 @@
+.logo {
+    height: 100%;
+}
+.row {
+    padding: 15px 30px;
+    height: 80px;
+}
+.row > div[class*=ant-col] {
+    height: 100%;
+}

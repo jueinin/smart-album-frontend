@@ -14,12 +14,11 @@ import {FormComponentProps} from "antd/lib/form";
 import Axios from "axios";
 import PhotosShow from "./phototsShow/photosShow";
 import CustomSpin from "../../components/CustomSpin/CustomSpin";
+import PhotoShowWrapper from "./phototsShow/photoShowWrapper";
+import {albumListMobx, AlbumProperties} from "../../mobx/albumListMobx";
+import {observer} from "mobx-react";
 interface Props extends FormComponentProps{
-
-}
-interface AlbumListProps{
-    albumId: number;
-    name: string;
+    albumList: AlbumProperties[];
 }
 interface State {
     uploadModalVisible: boolean;
@@ -28,13 +27,13 @@ interface State {
     uploadMultipleVisible: boolean;
     createAlbumVisible: boolean;
     uploadMultipleFiles: File[];
-    albumList: AlbumListProps[];
 }
+@observer
 class AlbumList extends Component<Props,State> {
     constructor(props:any) {
         super(props);
         this.state={uploadModalVisible: false, uploadFileNames: [], uploadFiles: undefined, uploadMultipleVisible: false,
-            uploadMultipleFiles: undefined, createAlbumVisible: false, albumList: undefined}
+            uploadMultipleFiles: undefined, createAlbumVisible: false}
     }
     onUploadClick=()=>{
         this.setState({uploadModalVisible: true})//图片名称 图片描述 是否公开默认不公开
@@ -114,6 +113,7 @@ class AlbumList extends Component<Props,State> {
         }).then(value => {
             if (value.data.status === "ok") {
                 message.success("相册创建成功!");
+                albumListMobx.getAlbumList();
             } else {
                 message.error("相册创建失败");
             }
@@ -121,23 +121,13 @@ class AlbumList extends Component<Props,State> {
             message.error("相册创建失败");
         })
         this.setState({createAlbumVisible:false},()=>{
-            location.reload();
-        })
-    }
-    getAlbumList=()=>{
-        Axios.get("/api/album/getAlbumList").then(value => {
-            this.setState({albumList: value.data})
+            albumListMobx.getAlbumList();
         })
     }
     getPersonalInfo = () => {
         //获取个头像啊什么的  那个存储空间
         
     };
-
-    componentDidMount(): void {
-        this.getAlbumList();
-    }
-
     render() {
         const Search = Input.Search;
         const SubMenu = Menu.SubMenu;
@@ -182,7 +172,7 @@ class AlbumList extends Component<Props,State> {
                             <FormItem label={"选择相册"}>
                                 {getFieldDecorator("albumId")(
                                     <Select>
-                                        {this.state.albumList?this.state.albumList.map((value, index) => {
+                                        {this.props.albumList?this.props.albumList.map((value, index) => {
                                             return <Select.Option key={index + ""}
                                                                   value={value.albumId}>{value.name}</Select.Option>;
                                         }):<CustomSpin/>}
@@ -246,8 +236,11 @@ class AlbumList extends Component<Props,State> {
                     <Row className={style["bottom-content"]}>
                         <Col span={2} className={style.height100}>
                             <Menu defaultSelectedKeys={['allFiles']}>
-                                <MenuItem key={'allFiles'}>
-                                    <Link to={'/albumList'}>全部文件</Link>
+                                <MenuItem key={'allPics'}>
+                                    <Link to={'/albumList'}>全部图片</Link>
+                                </MenuItem>
+                                <MenuItem key={'albumlist'}>
+                                    <Link to={'/albumList/albums'}>我的相册</Link>
                                 </MenuItem>
                                 <MenuItem key={'share'}>
                                     <Link to={'/albumList/share'}>我的分享</Link>
@@ -269,10 +262,11 @@ class AlbumList extends Component<Props,State> {
                             </Row>
                             <div>
                                 <Switch>
-                                    <Route exact path={'/albumList'} component={AlbumList1}/>
+                                    <Route exact path={'/albumList'} component={PhotoShowWrapper}/>
+                                    <Route path={'/albumList/albums'} render={()=><AlbumList1 data={albumListMobx.albumList}/>} />
                                     <Route path={'/albumList/share'} component={Share}/>
                                     <Route path={'/albumList/recycleBin'} component={RecycleBin}/>
-                                    <Route path={'/albumlist/:id'} component={PhotosShow}/>
+                                    <Route path={'/albumlist/:id'} component={PhotoShowWrapper}/>
                                 </Switch>
                             </div>
                         </Col>

@@ -6,20 +6,22 @@ import Axios from "axios";
 import {FormComponentProps} from "antd/lib/form";
 import PhotoList from "../../photoList/photoList";
 import CustomSpin from "../../CustomSpin/CustomSpin";
+import {observer} from "mobx-react";
+import {albumListMobx} from "../../../mobx/albumListMobx";
 interface Props extends FormComponentProps{
-    id: string;
-    cover:string;//url
+    id: number;
+    cover:number;//url
     title: string;
     createTime: string;
     description: string;
     className?: string;
-    photoAmount: string;
-    onDeleteCallback:(id:any)=>void
+    photoAmount: number;
 }
 interface State {
     editVisible: boolean;
     photoListData: { photoId: string,path: string }[];
 }
+@observer
 class AlbumListItem extends Component<Props,State> {
     constructor(props:any) {
         super(props);
@@ -49,14 +51,7 @@ class AlbumListItem extends Component<Props,State> {
         this.setState({editVisible: !this.state.editVisible})
     }
     onDeleteClick=()=>{
-        Axios.post("/api/album/delete",{
-            albumId: this.props.id
-        }).then(value => {
-            if (value.data.status === "ok") {
-                message.success("删除成功");
-                this.props.onDeleteCallback(this.props.id);
-            }
-        })
+        albumListMobx.deleteAlbum(this.props.id);
     }
     onSelectCoverClick=()=>{
         //this.setState({showPhotoList: true})

@@ -7,6 +7,12 @@
 }
 .body {
   height: 100vh;
+  background: url("http://jueinin.oss-cn-hongkong.aliyuncs.com/smart-album/%E7%99%BB%E5%BD%95%E8%83%8C%E6%99%AF%E5%9B%BE.jpg");
+}
+.active-link {
+  padding: 10px 25px;
+  background-color: #00c9ff;
+  color: #ffffff;
 }
 .logo-img-1 {
   height: 100%;
@@ -31,7 +37,6 @@
   padding-top: 5%;
   justify-content: center;
   align-items: start;
-  background-image: url("http://jueinin.oss-cn-hongkong.aliyuncs.com/images/Mfhf4eHxB%2BPniNJf7A0QynybFAfnv8AUZP%2BWFnHn.jpeg");
   background-size: cover;
   height: 93%;
 }
