@@ -67,6 +67,9 @@ class ResetPassword extends Component<Props,State> {
               <Input type={'email'}/>
             )}
           </Form.Item>
+          <Button htmlType={"button"} className={style['get-code']} disabled={this.state.getVerificationDisable} onClick={this.onGetVerificationCode}>{this.state.remainSecs||"获取验证链接"}</Button>
+          <span>请按照邮箱指示操作</span>
+          {/*
           <Form.Item label={"输入验证码"}>
              &nbsp;&nbsp; {
             getFieldDecorator('verification')(
@@ -75,6 +78,7 @@ class ResetPassword extends Component<Props,State> {
           }<Button htmlType={"button"} className={style['get-code']} disabled={this.state.getVerificationDisable} onClick={this.onGetVerificationCode}>{this.state.remainSecs||"获取验证码"}</Button>
           </Form.Item>
           <Button htmlType={'submit'}>提交</Button>
+          */}
         </Form>
       </div>
     );

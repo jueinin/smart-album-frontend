@@ -35,6 +35,8 @@ import {observer} from "mobx-react";
 import Navbar from "../../components/navbar/navbar";
 import {UserProperties} from "../../mobx/userMobx";
 import NavbarAvatar from "../../components/navbar/navbarAvatar/navbarAvatar";
+import {selectDownloadMobx} from "../../mobx/selectDownloadMobx";
+import SearchComponent from './search/search';
 interface Props extends FormComponentProps,RouteComponentProps{
     albumList: AlbumProperties[];
     userInfo: UserProperties;
@@ -154,7 +156,10 @@ class AlbumList extends Component<Props,State> {
         })
     }
     onDownloadClick=()=>{
-    
+        selectDownloadMobx.downloadClick = true;     //批量下载后续再说吧
+    }
+    onSearch=(value:any,e:any)=>{
+        this.props.history.push("/albumlist/search?keyword=" + value);
     }
     render() {
         const Search = Input.Search;
@@ -171,153 +176,158 @@ class AlbumList extends Component<Props,State> {
             usedSpace=parseFloat((this.props.userInfo.usedSpace / 1024 / 1024 / 1024).toFixed(2))
         }
         return (
-            <div>
-                <Modal destroyOnClose footer={false} visible={this.state.uploadModalVisible}
-                       onOk={this.onUploadModalClose}
-                       onCancel={this.onUploadModalClose}>
-                    <div>
-                        <Form>
-                            <FormItem label={"图片名称"}>
-                                {getFieldDecorator("photoName", {
-                                    //
-                                })(<Input placeholder={"请输入图片名称"}/>)}
-                            </FormItem>
-                            <FormItem label={"图片描述"}>
-                                {getFieldDecorator("photoDescription", {})(<Input placeholder={'请输入图片描述'}/>)}
-                            </FormItem>
-                            <FormItem label={'是否公开'}>
-                                {getFieldDecorator("isPublic", {initialValue:"isPrivate"})(<Radio.Group>
-                                    <Radio value={'isPublic'}>公开</Radio>
-                                    <Radio value={'isPrivate'}>私密</Radio>
-                                </Radio.Group>)}
-                            </FormItem>
-                            <FormItem label={"拖动图片上传"}>
-                                <Dragger showUploadList={false} onChange={this.onDraggerChange} accept={"image/*"}
-                                         customRequest={() => {
-                                         }}>
-                                    <p>点击或者拖动文件到这里即可上传</p>
-                                </Dragger>
-                                
-                            </FormItem>
-                            <div>
-                                {this.state.uploadFileNames.map((value, index) => {
-                                    return <p key={index}>{value}</p>;
-                                })}
-                            </div>
-                            <FormItem label={"选择相册"}>
-                                {getFieldDecorator("albumId",{
-                                    initialValue: this.props.albumList.length === 0 ? null : this.props.albumList[0].albumId
-                                })(
-                                  <Select>
-                                      {this.props.albumList?this.props.albumList.map((value, index) => {
-                                          return <Select.Option key={index + ""}
-                                                                value={value.albumId}>{value.name}</Select.Option>;
-                                      }):<CustomSpin/>}
-                                  </Select>
-                                )}
-                            </FormItem>
-                            <FormItem className={style["upload-modal-submit"]}>
-                                <Button htmlType={"submit"} type={"primary"} onClick={this.onUploadSubmit}>提交</Button>
-                            </FormItem>
-                        </Form>
-                    </div>
-                </Modal>
-                <Modal destroyOnClose visible={this.state.uploadMultipleVisible} footer={false}
-                       onCancel={this.onUploadMultipleClose}>
-                    <FormItem label={"选择相册"}>
-                        {getFieldDecorator("multiAlbumId",{
-                            initialValue: this.props.albumList.length === 0 ? null : this.props.albumList[0].albumId
-                        })(
-                          <Select>
-                              {this.props.albumList?this.props.albumList.map((value, index) => {
-                                  return <Select.Option key={index + ""}
-                                                        value={value.albumId}>{value.name}</Select.Option>;
-                              }):<CustomSpin/>}
-                          </Select>
-                        )}
-                    </FormItem>
-                    <Dragger accept={"image/*"} multiple customRequest={this.onMultipleSubmit}>
-                        <p></p>
-                        <p>点击批量上传</p>
-                        <p></p>
-                    </Dragger>
-                </Modal>
-                <Modal destroyOnClose onCancel={this.onCreateAlbumCancel} onOk={this.onCreateAlbumSubmit} visible={this.state.createAlbumVisible}>
-                    <Form>
-                        <FormItem label={"相册名称"}>
-                            {getFieldDecorator("albumName",{})(
-                                <Input  type={'text'}/>
-                            )}
-                        </FormItem>
-                        <FormItem label={"相册描述"}>
-                            {getFieldDecorator("albumDescription",{})(
-                                <Input  type={'text'}/>
-                            )}
-                        </FormItem>
-                    </Form>
-                </Modal>
-                <div className={style.body}>
-                    <Navbar>
-                        <Col span={6} offset={4} className={style["search-wrapper"]}>
-                            <div style={{width: "100%"}}>
-                                <Search enterButton size={"large"} className={style["search-input"]}
-                                        placeholder={"请输入关键字查询"}/>
-                            </div>
-                        </Col>
-                        <Col span={3} offset={1} className={style["nav-buttons"]}>
-                            <Button onClick={this.onCreateAlbumOpen}>
-                                <Icon type="plus"/>创建
-                            </Button>
-                            <Button style={{marginLeft: 30}} onClick={this.onUploadClick}>
-                                <Icon type="upload"/>上传
-                            </Button>
-                            <Button style={{marginLeft: 30}} onClick={this.onMultipleUploadClick}>
-                                <Icon type="upload"/>批量上传
-                            </Button>
-                        </Col>
-                        <NavbarAvatar avatar={avatar} nickname={nickname}{...this.props}/>
-                    </Navbar>
-                    <Row className={style["bottom-content"]}>
-                        <Col span={2} className={style.height100}>
-                            <Menu defaultSelectedKeys={['allFiles']}>
-                                <MenuItem key={'allPics'}>
-                                    <Link to={'/albumList'}>全部图片</Link>
-                                </MenuItem>
-                                <MenuItem key={'albumlist'}>
-                                    <Link to={'/albumList/albums'}>我的相册</Link>
-                                </MenuItem>
-                                <MenuItem key={'share'}>
-                                    <Link to={'/albumList/share'}>我的分享</Link>
-                                </MenuItem>
-                                <MenuItem key={'rubbish'}>
-                                    <Link to={'/albumList/recycleBin'}>回收站</Link>
-                                </MenuItem>
-                            </Menu>
-                            <div className={style["left-nav-bottom"]}>
-                                <SizeProgress progress={usedSpace/storeSpace} height={10}/>
-                                {usedSpace}GB/{storeSpace}GB
-                            </div>
-                        </Col>
-                        <Col span={20} offset={1} className={style.height100}>
-                            <Row className={style["right-top-nav"]}>
-                                <Button size={"large"}>相册列表</Button>
-                                <Button size={"large"} style={{marginLeft: 20}}>智能分类</Button>
-                                <Button size={"large"} style={{marginLeft: 20}}>全部图片</Button>
-                                <Button size={"large"} style={{marginLeft:"75%"}} onClick={this.onDownloadClick}>下载</Button>
-                            </Row>
-                            <div>
-                                <Switch>
-                                    <Route exact path={'/albumList'} component={PhotoShowWrapper}/>
-                                    <Route path={'/albumList/albums'} render={()=><AlbumList1 data={albumListMobx.albumList}/>} />
-                                    <Route path={'/albumList/share'} component={Share}/>
-                                    <Route path={'/albumList/recycleBin'} component={RecycleBin}/>
-                                    <Route path={'/albumlist/:id'} component={PhotoShowWrapper}/>
-                                </Switch>
-                            </div>
-                        </Col>
-                    </Row>
-                </div>
-            </div>
+          <div>
+              <Modal destroyOnClose footer={false} visible={this.state.uploadModalVisible}
+                     onOk={this.onUploadModalClose}
+                     onCancel={this.onUploadModalClose}>
+                  <div>
+                      <Form>
+                          <FormItem label={"图片名称"}>
+                              {getFieldDecorator("photoName", {
+                                  //
+                              })(<Input placeholder={"请输入图片名称"}/>)}
+                          </FormItem>
+                          <FormItem label={"图片描述"}>
+                              {getFieldDecorator("photoDescription", {})(<Input placeholder={'请输入图片描述'}/>)}
+                          </FormItem>
+                          <FormItem label={'是否公开'}>
+                              {getFieldDecorator("isPublic", {initialValue: "isPrivate"})(<Radio.Group>
+                                  <Radio value={'isPublic'}>公开</Radio>
+                                  <Radio value={'isPrivate'}>私密</Radio>
+                              </Radio.Group>)}
+                          </FormItem>
+                          <FormItem label={"拖动图片上传"}>
+                              <Dragger showUploadList={false} onChange={this.onDraggerChange} accept={"image/*"}
+                                       customRequest={() => {
+                                       }}>
+                                  <p>点击或者拖动文件到这里即可上传</p>
+                              </Dragger>
+                      
+                          </FormItem>
+                          <div>
+                              {this.state.uploadFileNames.map((value, index) => {
+                                  return <p key={index}>{value}</p>;
+                              })}
+                          </div>
+                          <FormItem label={"选择相册"}>
+                              {getFieldDecorator("albumId", {
+                                  initialValue: this.props.albumList.length === 0 ? null : this.props.albumList[0].albumId
+                              })(
+                                <Select>
+                                    {this.props.albumList ? this.props.albumList.map((value, index) => {
+                                        return <Select.Option key={index + ""}
+                                                              value={value.albumId}>{value.name}</Select.Option>;
+                                    }) : <CustomSpin/>}
+                                </Select>
+                              )}
+                          </FormItem>
+                          <FormItem className={style["upload-modal-submit"]}>
+                              <Button htmlType={"submit"} type={"primary"} onClick={this.onUploadSubmit}>提交</Button>
+                          </FormItem>
+                      </Form>
+                  </div>
+              </Modal>
+              <Modal destroyOnClose visible={this.state.uploadMultipleVisible} footer={false}
+                     onCancel={this.onUploadMultipleClose}>
+                  <FormItem label={"选择相册"}>
+                      {getFieldDecorator("multiAlbumId", {
+                          initialValue: this.props.albumList.length === 0 ? null : this.props.albumList[0].albumId
+                      })(
+                        <Select>
+                            {this.props.albumList ? this.props.albumList.map((value, index) => {
+                                return <Select.Option key={index + ""}
+                                                      value={value.albumId}>{value.name}</Select.Option>;
+                            }) : <CustomSpin/>}
+                        </Select>
+                      )}
+                  </FormItem>
+                  <Dragger accept={"image/*"} multiple customRequest={this.onMultipleSubmit}>
+                      <p></p>
+                      <p>点击批量上传</p>
+                      <p></p>
+                  </Dragger>
+              </Modal>
+              <Modal destroyOnClose onCancel={this.onCreateAlbumCancel} onOk={this.onCreateAlbumSubmit}
+                     visible={this.state.createAlbumVisible}>
+                  <Form>
+                      <FormItem label={"相册名称"}>
+                          {getFieldDecorator("albumName", {})(
+                            <Input type={'text'}/>
+                          )}
+                      </FormItem>
+                      <FormItem label={"相册描述"}>
+                          {getFieldDecorator("albumDescription", {})(
+                            <Input type={'text'}/>
+                          )}
+                      </FormItem>
+                  </Form>
+              </Modal>
+              <div className={style.body}>
+                  <Navbar>
+                      <Col span={6} offset={4} className={style["search-wrapper"]}>
+                          <div style={{width: "100%"}}>
+                              <Search enterButton size={"large"} className={style["search-input"]}
+                                      placeholder={"请输入关键字查询"} onSearch={this.onSearch}/>
+                          </div>
+                      </Col>
+                      <Col span={3} offset={1} className={style["nav-buttons"]}>
+                          <Button onClick={this.onCreateAlbumOpen}>
+                              <Icon type="plus"/>创建
+                          </Button>
+                          <Button style={{marginLeft: 30}} onClick={this.onUploadClick}>
+                              <Icon type="upload"/>上传
+                          </Button>
+                          <Button style={{marginLeft: 30}} onClick={this.onMultipleUploadClick}>
+                              <Icon type="upload"/>批量上传
+                          </Button>
+                      </Col>
+                      <NavbarAvatar avatar={avatar} nickname={nickname}{...this.props}/>
+                  </Navbar>
+                  <Row className={style["bottom-content"]}>
+                      <Col span={2} className={style.height100}>
+                          <Menu defaultSelectedKeys={['allFiles']}>
+                              <MenuItem key={'allPics'}>
+                                  <Link to={'/albumList'}>全部图片</Link>
+                              </MenuItem>
+                              <MenuItem key={'albumlist'}>
+                                  <Link to={'/albumList/albums'}>我的相册</Link>
+                              </MenuItem>
+                              <MenuItem key={'share'}>
+                                  <Link to={'/albumList/share'}>我的分享</Link>
+                              </MenuItem>
+                              <MenuItem key={'rubbish'}>
+                                  <Link to={'/albumList/recycleBin'}>回收站</Link>
+                              </MenuItem>
+                          </Menu>
+                          <div className={style["left-nav-bottom"]}>
+                              <SizeProgress progress={usedSpace / storeSpace} height={10}/>
+                              {usedSpace}GB/{storeSpace}GB
+                          </div>
+                      </Col>
+                      <Col span={20} offset={1} className={style.height100}>
+                          <Row className={style["right-top-nav"]}>
+                              <Button size={"large"}>相册列表</Button>
+                              <Button size={"large"} style={{marginLeft: 20}}>智能分类</Button>
+                              <Button size={"large"} style={{marginLeft: 20}}>全部图片</Button>
+                              <Button size={"large"} style={{marginLeft: "75%"}}
+                                      onClick={this.onDownloadClick}>下载</Button>
+                          </Row>
+                          <div>
+                              <Switch>
+                                  <Route path={'/albumList/search'} component={SearchComponent}/>
+                                  <Route exact path={'/albumList'} component={PhotoShowWrapper}/>
+                                 
+                                  <Route path={'/albumList/albums'}
+                                         render={() => <AlbumList1 data={albumListMobx.albumList}/>}/>
+                                  <Route path={'/albumList/share'} component={Share}/>
+                                  <Route path={'/albumList/recycleBin'} component={RecycleBin}/>
+                                  <Route path={'/albumlist/:id'} component={PhotoShowWrapper}/>
+                              </Switch>
+                          </div>
+                      </Col>
+                  </Row>
+              </div>
+          </div>
         );
     }
 }

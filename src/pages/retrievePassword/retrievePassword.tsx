@@ -53,7 +53,10 @@ class RetrievePassword extends Component<Props,State> {
         formData.append("newPassword",value.password)
         Axios.post("/api/user/retrievePassword",formData).then(value1 => {
           if (value1.data.status === 'ok') {
-            message.success("修改成功")
+            message.success("修改成功,1秒后返回")
+            setTimeout(()=>{
+              this.props.history.push("/signin")
+            },1000)
           }
         })
       }

@@ -20,6 +20,8 @@ import AlbumListWrapper from "./pages/albumList/albumListWrapper";
 import PersonalCenterWrapper from "./pages/personalCenter/personalCenterWrapper";
 import ResetPassword from "./pages/resetPassword/resetPassword";
 import RetrievePassword from "./pages/retrievePassword/retrievePassword";
+import Search from "./pages/search/search";
+import SearchWrapper from "./pages/albumList/search/searchWrapper";
 
 export const mockPath = "http://120.79.239.103:8080/mock/16/mockapi";
 export const picUrlPrefix = "/api/photo/show?photoId=";
@@ -58,6 +60,7 @@ ReactDOM.render(
           <Route path={"/personalCenter"} component={PersonalCenterWrapper}/>
           <Route path={'/resetPassword'} component={ResetPassword}/>
           <Route path={'/retrievePassword'} component={RetrievePassword}/>
+          <Route path={'/search'} component={SearchWrapper}/>
           <Route path={'/test'} component={Test}/>
           <Route path={'/'} component={MainRoute}/>
         </Switch>

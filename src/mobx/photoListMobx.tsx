@@ -15,6 +15,28 @@ export interface PhotoProperties {
 }
 class PhotoListMobx {
   @observable photoList: PhotoProperties[]=[];
+  
+  @action
+  getScopeSearchPhotos(keyword: string) {
+    Axios.get("/api/photo/scopeSearch",{
+      params:{
+        keyword
+      }
+    }).then(value1 => {
+      this.photoList = value1.data;
+    })
+  }
+  
+  @action
+  getGlobalSearchPhotos(keyword:string) {
+    Axios.get("/api/photo/globalSearch",{
+      params:{
+        keyword
+      }
+    }).then(value1 => {
+      this.photoList = value1.data;
+    })
+  }
   @action
   getAllPhotos(){
     Axios.get(`/api/photo/getPhotos`).then(value => {

@@ -2,12 +2,14 @@ import React, {Component} from 'react';
 import 'antd/dist/antd.css'
 import style from './indexPage.module.css';
 import {Button, Col, Input, Row} from "antd";
-import {Link} from "react-router-dom";
+import {Link, RouteComponentProps} from "react-router-dom";
 import Navbar from "../../components/navbar/navbar";
 import NavbarLink from "../../components/navbar/navbarLink/navbarLink";
-class IndexPage extends Component {
+class IndexPage extends Component<RouteComponentProps> {
+    input: React.RefObject<Input> = React.createRef();
     onSearch=()=>{
-        //search
+        let value = this.input.current.input.value;
+        this.props.history.push("/search?keyword=" + value);
     }
     render() {
         const Search = Input.Search;
@@ -25,8 +27,8 @@ class IndexPage extends Component {
                             <div>
                                 <h2 className={style.title}>欢迎来到NEWBEE</h2>
                                 <div className={style["search-input-wrapper"]}>
-                                    <Input className={style["search-input"]} allowClear
-                                           placeholder={"请输入关键字进行搜索"}/><Button type={"primary"}>搜索</Button>
+                                    <Input ref={this.input} className={style["search-input"]} allowClear
+                                           placeholder={"请输入关键字进行搜索"}/><Button type={"primary"} onClick={this.onSearch}>搜索</Button>
                                 </div>
                             </div>
                         </Col>

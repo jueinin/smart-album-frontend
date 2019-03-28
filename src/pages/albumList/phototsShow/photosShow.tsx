@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {RouteComponentProps} from "react-router";
 import Axios from "axios";
 import CustomSpin from "../../../components/CustomSpin/CustomSpin";
-import {Button, Col, Dropdown, Form, Icon, Input, Menu, message, Modal, Popconfirm, Radio, Row} from "antd";
+import {Button, Checkbox, Col, Dropdown, Form, Icon, Input, Menu, message, Modal, Popconfirm, Radio, Row} from "antd";
 import {Link} from "react-router-dom";
 import style from './photosShow.module.css';
 import {FormComponentProps} from "antd/lib/form";
@@ -79,7 +79,7 @@ class PhotosShow extends Component<Props, State> {
             if (value.data.status === "ok") {
                 message.success("删除成功");
                 //添加更新
-                photoListMobx.updatePhotos(this.props.location.pathname);
+                photoListMobx.updatePhotos(this.props.location.pathname,parseInt(this.props.match.params.id));
             } else {
                 message.error("删除失败");
             }
@@ -101,9 +101,11 @@ class PhotosShow extends Component<Props, State> {
                 </MenuItem>
                 <MenuItem>下载相册</MenuItem>
             </Menu>;
-            return <Col key={photoId + ""} span={4} className={style["img-col"]} >
+            return <Col key={photoId + ""} span={4} className={style["img-col"]}>
                 <span>
-                    <img style={{width: "100%",maxHeight:"100%"}} onClickCapture={(e)=>that.onImgClick(photoId,e)} src={picThumbnailUrlPrefix + photoId}/>
+                    <img style={{width: "100%", maxHeight: "100%"}}
+                                                   onClickCapture={(e) => that.onImgClick(photoId, e)}
+                                                   src={picThumbnailUrlPrefix + photoId}/>
                 </span>
                 <Dropdown overlay={overlay}>
                     <Link to={'#'} className={style["more-icon"]}><Icon type="more"/></Link>

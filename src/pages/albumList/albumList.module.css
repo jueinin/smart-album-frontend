@@ -15,7 +15,12 @@
     align-items: center;
     height: 100%;
 }
-
+.nav-buttons {
+    height: 100%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+}
 .bottom-content {
     height: 93%;
 
