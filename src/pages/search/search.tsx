@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import {RouteComponentProps} from "react-router";
+import style from './search.module.css';
 import Navbar from "../../components/navbar/navbar";
 import NavbarLink from "../../components/navbar/navbarLink/navbarLink";
 import PhotosShow from "../albumList/phototsShow/photosShow";
@@ -25,9 +26,11 @@ class Search extends Component<Props,State> {
       <div>
         <Navbar>
           <NavbarLink title={"首页"} path={'/'}/>
-          <NavbarLink title={'/个人主页'} path={'/albumlist'}/>
+          <NavbarLink title={'个人主页'} path={'/albumlist'}/>
         </Navbar>
-        {this.props.photos?<PhotosShow data={photoListMobx.photoList}{...this.props}/>:"没有搜索结果"}
+        <div className={style['body']}>
+        {this.props.photos&&this.props.photos.length?<PhotosShow data={photoListMobx.photoList}{...this.props}/>:"没有搜索结果"}
+        </div>
       </div>
     );
   }

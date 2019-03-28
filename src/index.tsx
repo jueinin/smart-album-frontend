@@ -21,7 +21,7 @@ import PersonalCenterWrapper from "./pages/personalCenter/personalCenterWrapper"
 import ResetPassword from "./pages/resetPassword/resetPassword";
 import RetrievePassword from "./pages/retrievePassword/retrievePassword";
 import Search from "./pages/search/search";
-import SearchWrapper from "./pages/albumList/search/searchWrapper";
+import SearchWrapper from "./pages/search/searchWrapper";
 
 export const mockPath = "http://120.79.239.103:8080/mock/16/mockapi";
 export const picUrlPrefix = "/api/photo/show?photoId=";
