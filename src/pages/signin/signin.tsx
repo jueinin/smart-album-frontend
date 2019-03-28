@@ -50,7 +50,7 @@ class SignIn extends Component<Props,{}> {
                             </FormItem>
                             <div className={style["form-bottom"]}>
                                 <Link style={{float:'left'}} to={"/signup"}>立即注册</Link>
-                                <Link style={{float:"right"}} to={'/'}>忘记密码?</Link>
+                                <Link style={{float:"right"}} to={'/resetPassword'}>忘记密码?</Link>
                             </div>
                         </Form>
                     </div>

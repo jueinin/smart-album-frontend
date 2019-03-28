@@ -14,4 +14,11 @@
     display: flex;
     justify-content: space-around;
     align-items: center;
+    margin-top: 30px;
+}
+.bottom-content {
+    margin-top: 300px;
+}
+.item-body {
+    text-align: center;
 }

@@ -8,53 +8,19 @@ import {mockPath} from "../../../index";
 import CustomSpin from "../../../components/CustomSpin/CustomSpin";
 import {RouteComponentProps} from "react-router";
 import {parseGender} from "../modifyPersonalInfo/modifyPersonalInfo";
+import {UserProperties} from "../../../mobx/userMobx";
+import {observer} from "mobx-react";
 interface Props extends RouteComponentProps{
 
 }
+interface Props{
+    userInfo: UserProperties;
+}
 interface State {
-    data:{
-        username: string;
-        avatar: string;
-        gender: number;
-        albumAmount: number;
-        photoAmount: number;
-        storeSpace: number;
-        usedSpace: number;
-    }
-    bottomData: BottomData[];
+
 }
-interface BottomData {
-    title: string;
-    src: string;
-}
+@observer
 class PersonalCenterInfo extends Component<Props,State> {
-    state:State={
-        data: undefined,
-        bottomData: undefined
-    }
-    getData=()=>{
-        Axios.get(mockPath+"/api/user/getInfo").then(value => {
-            this.setState({data: value.data},()=>{
-                this.setState({bottomData: [
-                        {
-                            title: "相册数量" + this.state.data.albumAmount + "本",
-                            src: "http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u591.png"
-                        },
-                        {
-                            title: "图片数量 " + this.state.data.photoAmount + "本",
-                            src: "http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u592.png"
-                        },
-                        {
-                            title: `图片已用空间 ${this.state.data.usedSpace}/${this.state.data.storeSpace}`,
-                            src: "http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u593.png"
-                        }
-                    ]})
-            })
-        })
-    }
-    componentDidMount(): void {
-        this.getData();
-    }
     onModifyPassword=()=>{
         this.props.history.push("/personalCenter/password");
     }
@@ -65,27 +31,49 @@ class PersonalCenterInfo extends Component<Props,State> {
         this.props.history.push("/personalCenter/notification")
     }
     render() {
+        let userInfo = this.props.userInfo;
         let Item=(title:string,src:string)=>{
-            return <div key={src}>
+            return <div key={src} className={style['item-body']}>
                 <img src={src} className={style.img}/>
                 <div>
                     {title}
                 </div>
             </div>
         }
+        let bottomData:any[] = [];
+        if (userInfo) {
+            let {usedSpace, storeSpace} = this.props.userInfo;
+            usedSpace = parseFloat((usedSpace / 1024 / 1024 / 1024).toFixed(2));
+            storeSpace = parseFloat((storeSpace / 1024 / 1024 / 1024).toFixed(2));
+            bottomData = [
+                {
+                    title: "相册数量" + this.props.userInfo.albumAmount + "本",
+                    src: "http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u591.png"
+                },
+                {
+                    title: "图片数量 " + this.props.userInfo.photoAmount + "本",
+                    src: "http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u592.png"
+                },
+                {
+                    title: `图片已用空间 ${usedSpace}GB/${storeSpace}GB`,
+                    src: "http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u593.png"
+                }
+            ];
+        }
+        
         return (
             <React.Fragment>
-                {this.state.bottomData?<Col span={24}>
+                {userInfo?<Col span={24}>
                     <Row className={style.top}>
-                        <Col span={8}>
+                        {/*<Col span={8}>
                             <Row>
                                 <Col span={12}>
-                                    <img src={this.state.data.avatar}
+                                    <img src={this.props.userInfo.avatar}
                                          className={style.avatar}/>
                                 </Col>
                                 <Col span={12}>
-                                    <Col span={24}>{this.state.data.username}</Col>
-                                    <Col span={24}>{parseGender(this.state.data.gender)}</Col>
+                                    <Col span={24}>{this.props.userInfo.username}</Col>
+                                    <Col span={24}>{parseGender(this.props.userInfo.gender)}</Col>
                                 </Col>
                             </Row>
                             <Row>
@@ -99,13 +87,13 @@ class PersonalCenterInfo extends Component<Props,State> {
                                     <Button block onClick={this.onOpenNotification}>我的消息</Button>
                                 </Col>
                             </Row>
-                        </Col>
-                        <Col span={24}>
+                        </Col>*/}
+                        <Col span={24} className={style['bottom-content']}>
                             <Row>
                                 数据统计>>
                             </Row>
                             <Col span={24} className={style.bottom}>
-                                {this.state.bottomData.map((value, index) => {
+                                {bottomData.map(value => {
                                     return Item(value.title, value.src);
                                 })}
                             </Col>

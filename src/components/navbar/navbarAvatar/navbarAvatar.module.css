@@ -1,0 +1,16 @@
+.avatar-img {
+    border-radius: 50%;
+    height: 100%;
+    width: 50px;
+
+}
+.avatar-link {
+    height: 100%;
+    color: #000;
+}
+.nav-buttons {
+    height: 100%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+}

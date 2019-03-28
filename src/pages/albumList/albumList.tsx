@@ -1,9 +1,24 @@
 import React, {Component} from 'react';
-import {Button, Col, Form, Icon, Input, Menu, message, Modal, notification, Radio, Row, Select, Upload} from "antd";
+import {
+    Button,
+    Col,
+    Dropdown,
+    Form,
+    Icon,
+    Input,
+    Menu,
+    message,
+    Modal,
+    notification,
+    Radio,
+    Row,
+    Select,
+    Upload
+} from "antd";
 import Logo from '../../components/logo/logo';
 import style from './albumList.module.css';
 import SizeProgress from "../../components/sizeProgress/sizeProgress";
-import {Route, Switch} from "react-router";
+import {Route, RouteComponentProps, Switch} from "react-router";
 import AlbumList1 from '../../components/albumLIst/albumList';
 import Share from "./share/share";
 import {Link} from "react-router-dom";
@@ -18,8 +33,11 @@ import PhotoShowWrapper from "./phototsShow/photoShowWrapper";
 import {albumListMobx, AlbumProperties} from "../../mobx/albumListMobx";
 import {observer} from "mobx-react";
 import Navbar from "../../components/navbar/navbar";
-interface Props extends FormComponentProps{
+import {UserProperties} from "../../mobx/userMobx";
+import NavbarAvatar from "../../components/navbar/navbarAvatar/navbarAvatar";
+interface Props extends FormComponentProps,RouteComponentProps{
     albumList: AlbumProperties[];
+    userInfo: UserProperties;
 }
 interface State {
     uploadModalVisible: boolean;
@@ -135,10 +153,7 @@ class AlbumList extends Component<Props,State> {
             albumListMobx.getAlbumList();
         })
     }
-    getPersonalInfo = () => {
-        //获取个头像啊什么的  那个存储空间
-        
-    };
+    
     render() {
         const Search = Input.Search;
         const SubMenu = Menu.SubMenu;
@@ -146,6 +161,13 @@ class AlbumList extends Component<Props,State> {
         const FormItem = Form.Item;
         const Dragger = Upload.Dragger;
         const getFieldDecorator = this.props.form.getFieldDecorator;
+        let nickname = "", avatar = "", storeSpace:number = 0, usedSpace = 0;
+        if (this.props.userInfo) {
+            nickname = this.props.userInfo.nickname;
+            avatar = this.props.userInfo.avatar;
+            storeSpace = parseFloat((this.props.userInfo.storeSpace / 1024 / 1024 / 1024).toFixed(2));
+            usedSpace=parseFloat((this.props.userInfo.usedSpace / 1024 / 1024 / 1024).toFixed(2))
+        }
         return (
             <div>
                 <Modal destroyOnClose footer={false} visible={this.state.uploadModalVisible}
@@ -251,11 +273,7 @@ class AlbumList extends Component<Props,State> {
                                 <Icon type="upload"/>批量上传
                             </Button>
                         </Col>
-                        <Col span={1} offset={4} className={style["nav-buttons"]}>
-                            username&nbsp;&nbsp;&nbsp;&nbsp;
-                            <img className={"mdui-img-fluid mdui-img-circle"}
-                                 src={"http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u113.png"}/>
-                        </Col>
+                        <NavbarAvatar avatar={avatar} nickname={nickname}{...this.props}/>
                     </Navbar>
                     <Row className={style["bottom-content"]}>
                         <Col span={2} className={style.height100}>
@@ -274,8 +292,8 @@ class AlbumList extends Component<Props,State> {
                                 </MenuItem>
                             </Menu>
                             <div className={style["left-nav-bottom"]}>
-                                <SizeProgress progress={30} height={10}/>
-                                30G/500G
+                                <SizeProgress progress={usedSpace/storeSpace} height={10}/>
+                                {usedSpace}GB/{storeSpace}GB
                             </div>
                         </Col>
                         <Col span={20} offset={1} className={style.height100}>

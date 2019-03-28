@@ -7,6 +7,10 @@
 .nav {
     height: 7%;
 }
+.bottom-row {
+    flex-grow: 1;
+    height: 100%;
+}
 .height100 {
     height: 100%;
 }
@@ -30,4 +34,16 @@
 }
 .right-middle :global(.ant-row) {
 
+}
+.left-nav {
+    padding: 40px 30px;
+    text-align: center;
+    height: 100%;
+    background-color: lightgrey;
+}
+.left-nav :global(.ant-btn) {
+    margin-top: 15px;
+}
+.left-nav img {
+    width: 100%;
 }

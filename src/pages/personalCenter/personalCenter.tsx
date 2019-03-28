@@ -11,72 +11,55 @@ import ModifyPersonalInfo from "./modifyPersonalInfo/modifyPersonalInfo";
 import Notification from './notification/notification';
 import Axios from "axios";
 import {mockPath} from "../../index";
-class PersonalCenter extends Component<RouteComponentProps,{}> {
-    exitLogin=()=>{
-        Axios.post(`${mockPath}/api/user/logout`).then(value => {
-            if (value.data.status === 'ok') {
-                message.success("退出成功");
-                this.props.history.push("/");
-            }
-        })
-    }
+import Navbar from "../../components/navbar/navbar";
+import NavbarLink from "../../components/navbar/navbarLink/navbarLink";
+import NavbarAvatar from "../../components/navbar/navbarAvatar/navbarAvatar";
+import {userInfoMobx, UserProperties} from "../../mobx/userMobx";
+import {observer} from "mobx-react";
+interface Props extends RouteComponentProps{
+    userInfo: UserProperties;
+}
+@observer
+class PersonalCenter extends Component<Props,{}> {
+    onLinkClick = (link: string) => {
+        this.props.history.push(link);
+    };
     render() {
+        let nickname = "", avatar = "";
+        if (this.props.userInfo) {
+            nickname = this.props.userInfo.nickname;
+            avatar = this.props.userInfo.avatar;
+        }
         return (
-            <div>
-                <div className={styleAlbum.body}>
-                    <Row className={style.nav}>
-                        <Col span={6} className={style.height100}>
-                            <Link to={"/"} className={style.logo}>
-                                <img style={{height: "100%"}}
-                                     src={"http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u0.png"}/>
-                                <img style={{height: "100%"}}
-                                     src={"http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u53.png"}/>
-                            </Link>
-                        </Col>
-                        <Col span={2} offset={16}>
-                            <Button onClick={this.exitLogin}>退出登录</Button>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col span={2}>
-                            <Menu>
-                                <Menu.Item>
-                                    <Link to={"/personalCenter"}>首页</Link>
-                                </Menu.Item>
-                                <Menu.Item>
-                                    <Link to={"/personalCenter/info"}>个人信息</Link>
-                                </Menu.Item>
-                                <Menu.Item>
-                                    <Link to={"/personalCenter"}>数据和个性化</Link>
-                                </Menu.Item>
-                                <Menu.Item>
-                                    <Link to={"/personalCenter"}>安全性</Link>
-                                </Menu.Item>
-                                <Menu.Item>
-                                    <Link to={"/personalCenter"}>用户和分享</Link>
-                                </Menu.Item>
-                                <Menu.Item>
-                                    <Link to={"/personalCenter"}>付费和订阅</Link>
-                                </Menu.Item>
-                                <Menu.Divider/>
-                                <Menu.Item>
-                                    <Link to={"/personalCenter"}>帮助</Link>
-                                </Menu.Item>
-                                <Menu.Item>
-                                    <Link to={"/personalCenter"}>反馈</Link>
-                                </Menu.Item>
-                            </Menu>
-                        </Col>
-                        <Col span={20} offset={2} className={style["right-content"]}>
-                            <Route exact path={"/personalCenter"} component={PersonalCenter1}/>
-                            <Route path={"/personalCenter/info"} component={PersonalCenterInfo}/>
-                            <Route path={"/personalCenter/password"} component={Password}/>
-                            <Route path={"/personalCenter/modifyInfo"} component={ModifyPersonalInfo}/>
-                            <Route path={"/personalCenter/notification"} component={Notification}/>
-                        </Col>
-                    </Row>
-                </div>
-            </div>
+          <div>
+              <div className={styleAlbum.body}>
+                  <Navbar>
+                      <NavbarLink title={"首页"} path={'/ '}/>
+                      <NavbarLink title={'个人主页'} path={'/albumlist'}/>
+                      <NavbarLink title={'个人中心'} path={'/personalCenter'}/>
+                      <NavbarAvatar offset={12} nickname={nickname} avatar={avatar} {...this.props}/>
+                  </Navbar>
+                  <Row className={style['bottom-row']}>
+                      <Col span={2} className={style['left-nav']}>
+                          <img src={avatar}/>
+                          <span>{nickname}</span>
+                          <Button htmlType={'button'}
+                                  onClick={() => this.onLinkClick('/personalCenter/modifyInfo')}>修改资料</Button>
+                          <Button htmlType={'button'}
+                                  onClick={() => this.onLinkClick('/personalCenter/password')}>修改密码</Button>
+                          <Button htmlType={'button'}
+                                  onClick={() => this.onLinkClick('/personalCenter/notification')}>我的消息</Button>
+                      </Col>
+                      <Col span={20} offset={2} className={style["right-content"]}>
+                          <Route exact path={"/personalCenter"}
+                                 render={() => <PersonalCenterInfo userInfo={userInfoMobx.userInfo} {...this.props}/>}/>
+                          <Route path={"/personalCenter/password"} component={Password}/>
+                          <Route path={"/personalCenter/modifyInfo"} render={()=><ModifyPersonalInfo userInfo={userInfoMobx.userInfo}{...this.props}/>}/>
+                          <Route path={"/personalCenter/notification"} component={Notification}/>
+                      </Col>
+                  </Row>
+              </div>
+          </div>
         );
     }
 }

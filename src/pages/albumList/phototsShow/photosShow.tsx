@@ -101,9 +101,9 @@ class PhotosShow extends Component<Props, State> {
                 </MenuItem>
                 <MenuItem>下载相册</MenuItem>
             </Menu>;
-            return <Col key={photoId + ""} span={4} className={style["img-col"]}>
-                <span  onClickCapture={(e)=>that.onImgClick(photoId,e)}>
-                    <img style={{width: "100%",maxHeight:"100%"}} src={picThumbnailUrlPrefix + photoId}/>
+            return <Col key={photoId + ""} span={4} className={style["img-col"]} >
+                <span>
+                    <img style={{width: "100%",maxHeight:"100%"}} onClickCapture={(e)=>that.onImgClick(photoId,e)} src={picThumbnailUrlPrefix + photoId}/>
                 </span>
                 <Dropdown overlay={overlay}>
                     <Link to={'#'} className={style["more-icon"]}><Icon type="more"/></Link>
