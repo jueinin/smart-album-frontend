@@ -153,7 +153,9 @@ class AlbumList extends Component<Props,State> {
             albumListMobx.getAlbumList();
         })
     }
+    onDownloadClick=()=>{
     
+    }
     render() {
         const Search = Input.Search;
         const SubMenu = Menu.SubMenu;
@@ -301,6 +303,7 @@ class AlbumList extends Component<Props,State> {
                                 <Button size={"large"}>相册列表</Button>
                                 <Button size={"large"} style={{marginLeft: 20}}>智能分类</Button>
                                 <Button size={"large"} style={{marginLeft: 20}}>全部图片</Button>
+                                <Button size={"large"} style={{marginLeft:"75%"}} onClick={this.onDownloadClick}>下载</Button>
                             </Row>
                             <div>
                                 <Switch>

@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {RouteComponentProps} from "react-router";
 import Axios from "axios";
 import CustomSpin from "../../../components/CustomSpin/CustomSpin";
-import {Col, Dropdown, Form, Icon, Input, Menu, message, Modal, Popconfirm, Radio, Row} from "antd";
+import {Button, Col, Dropdown, Form, Icon, Input, Menu, message, Modal, Popconfirm, Radio, Row} from "antd";
 import {Link} from "react-router-dom";
 import style from './photosShow.module.css';
 import {FormComponentProps} from "antd/lib/form";
