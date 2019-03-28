@@ -8,6 +8,8 @@ import PhotoList from "../../photoList/photoList";
 import CustomSpin from "../../CustomSpin/CustomSpin";
 import {observer} from "mobx-react";
 import {albumListMobx} from "../../../mobx/albumListMobx";
+import {PhotoProperties} from "../../../mobx/photoListMobx";
+import {picThumbnailUrlPrefix} from "../../../index";
 interface Props extends FormComponentProps{
     id: number;
     cover:number;//url
@@ -19,7 +21,7 @@ interface Props extends FormComponentProps{
 }
 interface State {
     editVisible: boolean;
-    photoListData: { photoId: string,path: string }[];
+    photoListData: PhotoProperties[];
 }
 @observer
 class AlbumListItem extends Component<Props,State> {
@@ -33,7 +35,7 @@ class AlbumListItem extends Component<Props,State> {
     onOpenEditModal=()=>{
         this.setState({editVisible: true},()=>{   //这个勉强能用了 可能还要改
             //请求photolist
-            Axios.get('/api/album/photos',{
+            Axios.get('/api/album/getAlbumPhotos',{
                 params:{albumId: this.props.id}
             }).then(value => {
                 this.setState({photoListData: value.data})
@@ -44,8 +46,26 @@ class AlbumListItem extends Component<Props,State> {
     }
     onSubmitEditModal=()=>{
         let name = this.props.form.getFieldValue("albumName");
+        if (!name) {
+            name = "";
+        }
         let description = this.props.form.getFieldValue("albumDescription");
-        let isPublic = this.props.form.getFieldValue("isPublic");
+        if (!description) {
+            description = "";
+        }
+        let isPublic = this.props.form.getFieldValue("isPublic") === "isPublic" ? 1 : 0;
+        let photoId = this.props.form.getFieldValue("cover");
+        let albumId = this.props.id;
+        Axios.post("/api/album/edit",{
+            name,description,albumId, photoId, isPublic
+        }).then(value => {
+            if (value.data.status === 'ok') {
+                message.success("修改成功!");
+                this.setState({editVisible:false})
+                albumListMobx.getAlbumList();
+            }
+        })
+        
     }
     onCloseEditModal=()=>{
         this.setState({editVisible: !this.state.editVisible})
@@ -81,16 +101,27 @@ class AlbumListItem extends Component<Props,State> {
                     <Dropdown overlay={overlay}>
                         <Link to={'#'} className={style["more-icon"]}><Icon type="more"/></Link>
                     </Dropdown>
+                    <div className={style['photo-amount']}>
+                        {this.props.photoAmount}张
+                    </div>
                 </div>
                 <Modal destroyOnClose visible={this.state.editVisible} onCancel={this.onCloseEditModal} onOk={this.onSubmitEditModal}>
-                    <Form>
+                    <Form className={style['edit-modal-form']}>
                         <FormItem label={'相册名'}>
-                            {getFieldDecorator("albumName")(
+                            {getFieldDecorator("albumName",{
+                                initialValue: albumListMobx.albumList.length !== 0 ? albumListMobx.albumList.filter((value, index) => {
+                                    return value.albumId === this.props.id
+                                })[0].name : ""
+                            })(
                                 <Input type={"text"}/>
                             )}
                         </FormItem>
                         <FormItem label={"相册描述"}>
-                            {getFieldDecorator("albumDescription")(
+                            {getFieldDecorator("albumDescription",{
+                                initialValue: albumListMobx.albumList.length !== 0 ? albumListMobx.albumList.filter((value, index) => {
+                                    return value.albumId === this.props.id
+                                })[0].description : ""
+                            })(
                                 <Input type={"text"}/>
                             )}
                         </FormItem>
@@ -103,11 +134,15 @@ class AlbumListItem extends Component<Props,State> {
                             )}
                         </FormItem>
                         {this.state.photoListData?<FormItem label={'选择封面'}>
-                            {getFieldDecorator("cover")(
+                            {getFieldDecorator("cover",{
+                                initialValue:albumListMobx.albumList.length !== 0 ? albumListMobx.albumList.filter((value, index) => {
+                                    return value.albumId === this.props.id
+                                })[0].cover: ""
+                            })(
                                 <RadioGroup className={style["photo-list"]}>
                                     {this.state.photoListData.map(value => {
                                         return <Radio key={value.photoId} value={value.photoId}>
-                                            <img style={{width:"100%"}} src={value.path}/>
+                                            <img style={{maxWidth:"100%"}} src={picThumbnailUrlPrefix+value.photoId}/>
                                         </Radio>
                                     })}
                                 </RadioGroup>

@@ -8,6 +8,10 @@ import style from './photosShow.module.css';
 import {FormComponentProps} from "antd/lib/form";
 import {photoListMobx, PhotoProperties} from "../../../mobx/photoListMobx";
 import {picThumbnailUrlPrefix, picUrlPrefix} from "../../../index";
+import {observer} from "mobx-react";
+// @ts-ignore
+import {PhotoSwipe} from 'react-photoswipe';
+import 'react-photoswipe/lib/photoswipe.css';
 interface RouteParams{
     id: string;
 }
@@ -17,16 +21,23 @@ interface Props extends RouteComponentProps<RouteParams>,FormComponentProps{
 interface State {
     editVisible: boolean;
     selectedPhotoId: number;
+    photoSwipeOpen: boolean;
 }
-
+@observer
 class PhotosShow extends Component<Props, State> {
     constructor(props:any) {
         super(props);
-        this.state={editVisible: false, selectedPhotoId: undefined}
+        this.state={editVisible: false, selectedPhotoId: undefined, photoSwipeOpen: false}
     }
     onEditSubmit=()=>{
-        const photoName = this.props.form.getFieldValue("photoName");
-        const photoDescription = this.props.form.getFieldValue("photoDescription");
+        let photoName = this.props.form.getFieldValue("photoName");
+        if (!photoName) {
+            photoName = "";
+        }
+        let photoDescription = this.props.form.getFieldValue("photoDescription");
+        if (!photoDescription) {
+            photoDescription = "";
+        }
         const isPublic = this.props.form.getFieldValue("isPublic") == "isPublic" ? 1 : 0;
         const photoId = this.state.selectedPhotoId;
         const albumId = this.props.match.params.id;
@@ -40,6 +51,7 @@ class PhotosShow extends Component<Props, State> {
             if (value.data.status === "ok") {
                 message.success("编辑成功!");
                 this.setState({editVisible:false})
+                photoListMobx.updatePhotos(this.props.location.pathname)
             } else {
                 message.error("编辑失败,请检查");
             }
@@ -52,6 +64,13 @@ class PhotosShow extends Component<Props, State> {
     };
     onEditCancel=()=>{
         this.setState({editVisible: false})
+    }
+    onImgClick = (index: number,e:any) => {
+        e.preventDefault();
+        this.setState({selectedPhotoId: index,photoSwipeOpen:true})
+    };
+    onCancelPhotoswipe=()=>{
+        this.setState({photoSwipeOpen:false})
     }
     onDeletePhoto=(photoId:number)=>{
         Axios.post("/api/photo/moveToRecycleBin", [{
@@ -82,27 +101,53 @@ class PhotosShow extends Component<Props, State> {
                 </MenuItem>
                 <MenuItem>下载相册</MenuItem>
             </Menu>;
-            return <Col key={photoId + ""} span={8} className={style["img-col"]}>
-                <a href={picUrlPrefix + photoId} target={"_blank"}>
-                    <img style={{width: "100%"}} src={picThumbnailUrlPrefix + photoId}/>
-                </a>
+            return <Col key={photoId + ""} span={4} className={style["img-col"]}>
+                <span  onClickCapture={(e)=>that.onImgClick(photoId,e)}>
+                    <img style={{width: "100%",maxHeight:"100%"}} src={picThumbnailUrlPrefix + photoId}/>
+                </span>
                 <Dropdown overlay={overlay}>
                     <Link to={'#'} className={style["more-icon"]}><Icon type="more"/></Link>
                 </Dropdown>
             </Col>;
         };
+        let name = "";let description = "";
+        if (this.state.selectedPhotoId) {
+            name = this.props.data.filter(value => {
+                return value.photoId === this.state.selectedPhotoId;
+            })[0].name;
+            description = this.props.data.filter(value => {
+                return value.photoId === this.state.selectedPhotoId;
+            })[0].description;
+        }
+        let options={
+            index: this.props.data.findIndex((value, index) => {
+                return value.photoId===this.state.selectedPhotoId
+            })
+        };
+        let items=this.props.data.map((value, index) => {
+            return {
+                src: picUrlPrefix + value.photoId,
+                w: value.width,
+                h: value.height,
+                title: value.name
+            }
+        });
         return (
             <div>
                 <Modal destroyOnClose onOk={this.onEditSubmit} visible={this.state.editVisible}
                        onCancel={this.onEditCancel}>
                     <Form>
                         <Form.Item label={"编辑图片名称"}>
-                            {getFieldDecorator("photoName")(
+                            {getFieldDecorator("photoName",{
+                                initialValue: name
+                            })(
                                 <Input type={'text'}/>
                             )}
                         </Form.Item>
                         <Form.Item label={"编辑图片描述"}>
-                            {getFieldDecorator("photoDescription")(
+                            {getFieldDecorator("photoDescription",{
+                                initialValue:description
+                            })(
                                 <Input type={'text'}/>
                             )}
                         </Form.Item>
@@ -125,6 +170,7 @@ class PhotosShow extends Component<Props, State> {
                         })}
                     </React.Fragment> : <CustomSpin/>}
                 </Row>
+                <PhotoSwipe items={items} options={options} isOpen={this.state.photoSwipeOpen} onClose={this.onCancelPhotoswipe}/>
             </div>
         );
     }

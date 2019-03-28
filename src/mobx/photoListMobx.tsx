@@ -14,10 +14,10 @@ export interface PhotoProperties {
   originalTime: string;
 }
 class PhotoListMobx {
-  @observable photoList: PhotoProperties[];
+  @observable photoList: PhotoProperties[]=[];
   @action
   getAllPhotos(){
-    Axios.get(`${mockPath}/api/photo/getPhotos`).then(value => {
+    Axios.get(`/api/photo/getPhotos`).then(value => {
       this.photoList = value.data;
     })
   }

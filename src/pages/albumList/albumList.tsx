@@ -17,6 +17,7 @@ import CustomSpin from "../../components/CustomSpin/CustomSpin";
 import PhotoShowWrapper from "./phototsShow/photoShowWrapper";
 import {albumListMobx, AlbumProperties} from "../../mobx/albumListMobx";
 import {observer} from "mobx-react";
+import Navbar from "../../components/navbar/navbar";
 interface Props extends FormComponentProps{
     albumList: AlbumProperties[];
 }
@@ -58,8 +59,14 @@ class AlbumList extends Component<Props,State> {
         this.setState({uploadFileNames: filenames, uploadFiles: files})
     }
     onUploadSubmit=()=>{
-        const photoName = this.props.form.getFieldValue("photoName");
-        const photoDescription = this.props.form.getFieldValue("photoDescription");
+        let photoName = this.props.form.getFieldValue("photoName");
+        if (!photoName) {
+            photoName = "";
+        }
+        let photoDescription = this.props.form.getFieldValue("photoDescription");
+        if (!photoDescription) {
+            photoDescription = "";
+        }
         const isPublic = this.props.form.getFieldValue("isPublic");
         const file = this.state.uploadFiles[0].originFileObj
         const albumId = this.props.form.getFieldValue("albumId");
@@ -79,15 +86,19 @@ class AlbumList extends Component<Props,State> {
                 notification.info({
                     message: "上传成功"
                 });
+                this.setState({uploadModalVisible: false})
+                albumListMobx.getAlbumList();
             } else {
                 notification.info({message: "上传失败"})
             }
         })
     }
-    onMultipleSubmit=(file:any)=>{
+    onMultipleSubmit=(file:any)=>{                //要改  体验不好
         console.log(file.file)
         let formData = new FormData();
+        let multiAlbumId = this.props.form.getFieldValue("multiAlbumId");
         formData.set("files", file.file);
+        formData.set("albumId", multiAlbumId);
         Axios.post("/api/photo/uploads", formData).then(value => {
             if (value.data.successCount !== 1) {
                 notification.info({message: "上传失败"});
@@ -135,9 +146,6 @@ class AlbumList extends Component<Props,State> {
         const FormItem = Form.Item;
         const Dragger = Upload.Dragger;
         const getFieldDecorator = this.props.form.getFieldDecorator;
-        if (!this.props.form.getFieldValue("isPublic")) {
-            this.props.form.setFieldsValue({isPublic: "isPrivate"})
-        }
         return (
             <div>
                 <Modal destroyOnClose footer={false} visible={this.state.uploadModalVisible}
@@ -146,13 +154,15 @@ class AlbumList extends Component<Props,State> {
                     <div>
                         <Form>
                             <FormItem label={"图片名称"}>
-                                {getFieldDecorator("photoName", {})(<Input placeholder={"请输入图片名称"}/>)}
+                                {getFieldDecorator("photoName", {
+                                    //
+                                })(<Input placeholder={"请输入图片名称"}/>)}
                             </FormItem>
                             <FormItem label={"图片描述"}>
                                 {getFieldDecorator("photoDescription", {})(<Input placeholder={'请输入图片描述'}/>)}
                             </FormItem>
                             <FormItem label={'是否公开'}>
-                                {getFieldDecorator("isPublic", {})(<Radio.Group>
+                                {getFieldDecorator("isPublic", {initialValue:"isPrivate"})(<Radio.Group>
                                     <Radio value={'isPublic'}>公开</Radio>
                                     <Radio value={'isPrivate'}>私密</Radio>
                                 </Radio.Group>)}
@@ -163,6 +173,7 @@ class AlbumList extends Component<Props,State> {
                                          }}>
                                     <p>点击或者拖动文件到这里即可上传</p>
                                 </Dragger>
+                                
                             </FormItem>
                             <div>
                                 {this.state.uploadFileNames.map((value, index) => {
@@ -170,13 +181,15 @@ class AlbumList extends Component<Props,State> {
                                 })}
                             </div>
                             <FormItem label={"选择相册"}>
-                                {getFieldDecorator("albumId")(
-                                    <Select>
-                                        {this.props.albumList?this.props.albumList.map((value, index) => {
-                                            return <Select.Option key={index + ""}
-                                                                  value={value.albumId}>{value.name}</Select.Option>;
-                                        }):<CustomSpin/>}
-                                    </Select>
+                                {getFieldDecorator("albumId",{
+                                    initialValue: this.props.albumList.length === 0 ? null : this.props.albumList[0].albumId
+                                })(
+                                  <Select>
+                                      {this.props.albumList?this.props.albumList.map((value, index) => {
+                                          return <Select.Option key={index + ""}
+                                                                value={value.albumId}>{value.name}</Select.Option>;
+                                      }):<CustomSpin/>}
+                                  </Select>
                                 )}
                             </FormItem>
                             <FormItem className={style["upload-modal-submit"]}>
@@ -187,6 +200,18 @@ class AlbumList extends Component<Props,State> {
                 </Modal>
                 <Modal destroyOnClose visible={this.state.uploadMultipleVisible} footer={false}
                        onCancel={this.onUploadMultipleClose}>
+                    <FormItem label={"选择相册"}>
+                        {getFieldDecorator("multiAlbumId",{
+                            initialValue: this.props.albumList.length === 0 ? null : this.props.albumList[0].albumId
+                        })(
+                          <Select>
+                              {this.props.albumList?this.props.albumList.map((value, index) => {
+                                  return <Select.Option key={index + ""}
+                                                        value={value.albumId}>{value.name}</Select.Option>;
+                              }):<CustomSpin/>}
+                          </Select>
+                        )}
+                    </FormItem>
                     <Dragger accept={"image/*"} multiple customRequest={this.onMultipleSubmit}>
                         <p></p>
                         <p>点击批量上传</p>
@@ -208,8 +233,7 @@ class AlbumList extends Component<Props,State> {
                     </Form>
                 </Modal>
                 <div className={style.body}>
-                    <Row className={style.nav}>
-                        <Logo title={'主页'}/>
+                    <Navbar>
                         <Col span={6} offset={4} className={style["search-wrapper"]}>
                             <div style={{width: "100%"}}>
                                 <Search enterButton size={"large"} className={style["search-input"]}
@@ -232,7 +256,7 @@ class AlbumList extends Component<Props,State> {
                             <img className={"mdui-img-fluid mdui-img-circle"}
                                  src={"http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u113.png"}/>
                         </Col>
-                    </Row>
+                    </Navbar>
                     <Row className={style["bottom-content"]}>
                         <Col span={2} className={style.height100}>
                             <Menu defaultSelectedKeys={['allFiles']}>

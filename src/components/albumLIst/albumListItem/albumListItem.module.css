@@ -9,16 +9,29 @@
 }
 .more-icon {
     position: absolute;
-    right: 5px;
+    right: 0;
     top: 0;
     background-color: black;
     opacity: 0.4;
     color: #ffffff;
     font-size: 1.5rem;
     display: none;
+    transform: translateX(-50%);
 }
 .wrapper:hover .more-icon {
     display: block;
+}
+.photo-amount {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: black;
+    color: #ffffff;
+    opacity: 0.4;
+}
+.edit-modal-form :global(.ant-radio-wrapper) {
+    display: block;
+    margin-top: 8px;
 }
 .edit-input-tag {
     width: 50px;

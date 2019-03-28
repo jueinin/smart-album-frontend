@@ -1,10 +1,13 @@
 .img-col {
     margin-bottom: 35px;
+    height: 200px;
+    cursor: pointer;
 }
 .more-icon {
     position: absolute;
-    right: 5px;
+    right: 3px;
     top: 0;
+    transform: translateX(-50%);
     background-color: black;
     opacity: 0.4;
     color: #ffffff;
