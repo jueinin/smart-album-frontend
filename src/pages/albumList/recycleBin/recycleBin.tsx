@@ -3,6 +3,7 @@ import {Button, message, Table} from "antd";
 import Axios from "axios";
 import {mockPath} from "../../../index";
 import {Data} from "unist";
+import style from './recycleBin.module.css';
 import CustomSpin from "../../../components/CustomSpin/CustomSpin";
 import {PhotoProperties} from "../../../mobx/photoListMobx";
 import {TableRowSelection} from "antd/lib/table";
@@ -24,61 +25,84 @@ class RecycleBin extends Component<{},State> {
     componentDidMount(): void {
         this.getRecycleBinData();
     }
-    permanentDeletes=()=>{
-        if (!this.state.selectedRow) {
+    
+    permanentDeletes = (photoId?: number) => {
+        let photoIds: { photoId: number; }[];
+        if (photoId) {
+            photoIds = [{
+                photoId
+            }];
+        } else if (!this.state.selectedRow) {
             return;
+        } else {
+            //a按 state 来
+            photoIds = this.state.selectedRow.map(value => {
+                return {
+                    photoId: value.photoId
+                }
+            });
         }
-        let photoIds=this.state.selectedRow.map(value => {
-            return value.photoId;
-        })
-        Axios.post("/api/photo/completelyDelete",{
-            photoId:photoIds
-        }).then(value => {
-            if (value.data.status === "ok") {
+        Axios.post("/api/photo/completelyDelete", photoIds).then(value => {
+            if (value.data.status === 'ok') {
                 message.success("删除成功");
                 this.getRecycleBinData();
             }
-        });
-    }
+        })
+    };
     rowSelection:TableRowSelection<PhotoProperties>={
         onChange:(selectedRowKeys, selectedRows) => {
             this.setState({selectedRow: selectedRows})
         }
     }
-    recoverPics=()=>{
-        if (!this.state.selectedRow) {
+    recoverPics = (photoId?: number) => {//如果传了个photoid  单个删除 没有就按state删除
+        let photoIds: { photoId: number; }[];
+        if (photoId) {
+            photoIds = [{
+                photoId
+            }];
+        } else if (!this.state.selectedRow) {
             return;
+        } else {
+            //a按 state 来
+            photoIds = this.state.selectedRow.map(value => {
+                return {
+                    photoId: value.photoId
+                }
+            });
         }
-        let photoIds=this.state.selectedRow.map(value => {
-            return value.photoId;
-        })
-        Axios.post("/api/photo/moveOutRecycleBin",{
-            photoId: photoIds
-        }).then(value => {
+        Axios.post("/api/photo/moveOutRecycleBin", photoIds).then(value => {
             if (value.data.status === 'ok') {
                 message.success("恢复成功");
                 this.getRecycleBinData();
             }
         })
-    }
+    };
     render() {
         const Column = Table.Column;
         const that = this;
         return (
-            <div>
-                <Button htmlType={'button'} onClick={this.recoverPics}>恢复选中</Button><Button htmlType={'button'} onClick={this.permanentDeletes}>完全删除选中</Button>
-                {this.state.data?<Table dataSource={this.state.data} rowSelection={this.rowSelection}>
-                    <Column title={"文件名"} key={'fileName'} dataIndex={'name'}/>
-                    <Column title={"文件大小"} key={'fileSize'} dataIndex={'size'}/>
-                    <Column title={'分享时间'} key={'deleteTime'} dataIndex={"deleteTime"}/>
-                    <Column title={"操作"} key={'method'} dataIndex={'photoId'} render={(text:any,record)=>{
-                        return <div>
-                            <Button onClick={() => that.permanentDeletes}>永久删除</Button>
-                            <Button htmlType={'button'} >恢复</Button>
-                        </div>;
-                    }}/>
-                </Table>:<CustomSpin/>}
-            </div>
+          <div>
+              <div className={style['all-button']}>
+                  <Button htmlType={'button'} size={"large"} onClick={() => this.recoverPics()}>恢复选中</Button><Button
+                size={"large"} htmlType={'button'}
+                onClick={() => this.permanentDeletes()}>完全删除选中</Button>
+              </div>
+              {this.state.data ? <Table dataSource={this.state.data} rowSelection={this.rowSelection}
+                                        rowKey={(record: PhotoProperties) => record.photoId + ""}>
+                  <Column title={"文件名"} key={'fileName'} dataIndex={'name'}/>
+                  <Column title={"文件大小"} key={'fileSize'} dataIndex={'size'}
+                          render={(text: PhotoProperties['size'], record: any) => {
+                            return (text/1024/1024).toFixed(2)+"MB"
+                          }}/>
+                  <Column title={'到期时间'} key={'deleteTime'} dataIndex={"expireTime"}/>
+                  <Column title={"操作"} key={'method'} dataIndex={'photoId'} render={(text: any, record) => {
+                      return <div>
+                          <Button onClick={() => that.permanentDeletes(text)}>永久删除</Button>
+                          <Button htmlType={'button'} onClick={() => that.recoverPics(text)}>恢复</Button>
+                      </div>;
+                  }}/>
+              </Table> : <CustomSpin/>}
+          </div>
         );
     }
 }

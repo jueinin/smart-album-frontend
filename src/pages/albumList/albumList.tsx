@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {Component, FormEvent} from 'react';
 import {
     Button,
     Col,
@@ -9,7 +9,7 @@ import {
     Menu,
     message,
     Modal,
-    notification,
+    notification, Progress,
     Radio,
     Row,
     Select,
@@ -21,10 +21,10 @@ import SizeProgress from "../../components/sizeProgress/sizeProgress";
 import {Route, RouteComponentProps, Switch} from "react-router";
 import AlbumList1 from '../../components/albumLIst/albumList';
 import Share from "./share/share";
-import {Link} from "react-router-dom";
+import {Link, NavLink} from "react-router-dom";
 import RecycleBin from "./recycleBin/recycleBin";
 import {UploadChangeParam} from "antd/lib/upload";
-import {UploadFile} from "antd/lib/upload/interface";
+import {RcFile, UploadFile} from "antd/lib/upload/interface";
 import {FormComponentProps} from "antd/lib/form";
 import Axios from "axios";
 import PhotosShow from "./phototsShow/photosShow";
@@ -37,24 +37,27 @@ import {UserProperties} from "../../mobx/userMobx";
 import NavbarAvatar from "../../components/navbar/navbarAvatar/navbarAvatar";
 import {selectDownloadMobx} from "../../mobx/selectDownloadMobx";
 import SearchComponent from './search/search';
+import CustomNavLink from "../../components/navbar/customNavLink/customNavLink";
 interface Props extends FormComponentProps,RouteComponentProps{
     albumList: AlbumProperties[];
     userInfo: UserProperties;
 }
 interface State {
     uploadModalVisible: boolean;
+    uploadUploading: boolean;
     uploadFileNames: string[];
     uploadFiles: UploadFile[];
     uploadMultipleVisible: boolean;
     createAlbumVisible: boolean;
-    uploadMultipleFiles: File[];
+    uploadMultipleFiles: UploadFile[];
+    uploadProgress: number;
 }
 @observer
 class AlbumList extends Component<Props,State> {
     constructor(props:any) {
         super(props);
         this.state={uploadModalVisible: false, uploadFileNames: [], uploadFiles: undefined, uploadMultipleVisible: false,
-            uploadMultipleFiles: undefined, createAlbumVisible: false}
+            uploadMultipleFiles: undefined, createAlbumVisible: false,uploadUploading:false,uploadProgress:0}
     }
     onUploadClick=()=>{
         this.setState({uploadModalVisible: true})//图片名称 图片描述 是否公开默认不公开
@@ -79,6 +82,7 @@ class AlbumList extends Component<Props,State> {
         this.setState({uploadFileNames: filenames, uploadFiles: files})
     }
     onUploadSubmit=()=>{
+        this.setState({uploadUploading: true})
         let photoName = this.props.form.getFieldValue("photoName");
         if (!photoName) {
             photoName = "";
@@ -106,24 +110,39 @@ class AlbumList extends Component<Props,State> {
                 notification.info({
                     message: "上传成功"
                 });
-                this.setState({uploadModalVisible: false})
+                this.setState({uploadModalVisible: false, uploadUploading: false})
                 albumListMobx.getAlbumList();
             } else {
                 notification.info({message: "上传失败"})
             }
         })
     }
-    onMultipleSubmit=(file:any)=>{                //要改  体验不好
-        console.log(file.file)
+    onMultiUploadProgress=(e:ProgressEvent)=>{
+        this.setState({uploadProgress:e.loaded/e.total})
+    }
+    onMultipleSubmit=(e:FormEvent)=>{                //要改  体验不好
+        e.preventDefault();
+        if (!this.state.uploadMultipleFiles) {
+            return;
+        }
+        if (this.state.uploadMultipleFiles.length === 0) {
+            return;
+        }
+        this.setState({uploadUploading:true});
         let formData = new FormData();
         let multiAlbumId = this.props.form.getFieldValue("multiAlbumId");
-        formData.set("files", file.file);
+        this.state.uploadMultipleFiles.forEach((value, index) => {
+            formData.append("files", value.originFileObj);
+        });
         formData.set("albumId", multiAlbumId);
-        Axios.post("/api/photo/uploads", formData).then(value => {
-            if (value.data.successCount !== 1) {
+        Axios.post("/api/photo/uploads", formData,{
+            onUploadProgress:this.onMultiUploadProgress
+        }).then(value => {
+            if (value.data.successCount !== this.state.uploadMultipleFiles.length) {
                 notification.info({message: "上传失败"});
             } else {
                 notification.success({message: "上传成功"})
+                this.setState({uploadUploading: false,uploadMultipleVisible:false})
             }
         }).catch(err=>{
             notification.info({message: "上传失败"});
@@ -161,6 +180,9 @@ class AlbumList extends Component<Props,State> {
     onSearch=(value:any,e:any)=>{
         this.props.history.push("/albumlist/search?keyword=" + value);
     }
+    onMultiChange = (info:UploadChangeParam) => {
+        this.setState({uploadMultipleFiles:info.fileList})
+    };
     render() {
         const Search = Input.Search;
         const SubMenu = Menu.SubMenu;
@@ -202,7 +224,6 @@ class AlbumList extends Component<Props,State> {
                                        }}>
                                   <p>点击或者拖动文件到这里即可上传</p>
                               </Dragger>
-                      
                           </FormItem>
                           <div>
                               {this.state.uploadFileNames.map((value, index) => {
@@ -222,30 +243,43 @@ class AlbumList extends Component<Props,State> {
                               )}
                           </FormItem>
                           <FormItem className={style["upload-modal-submit"]}>
-                              <Button htmlType={"submit"} type={"primary"} onClick={this.onUploadSubmit}>提交</Button>
+                              <Button htmlType={"submit"} type={"primary"} disabled={this.state.uploadUploading}
+                                      loading={this.state.uploadUploading} onClick={this.onUploadSubmit}>提交</Button>
                           </FormItem>
                       </Form>
                   </div>
               </Modal>
               <Modal destroyOnClose visible={this.state.uploadMultipleVisible} footer={false}
                      onCancel={this.onUploadMultipleClose}>
-                  <FormItem label={"选择相册"}>
-                      {getFieldDecorator("multiAlbumId", {
-                          initialValue: this.props.albumList.length === 0 ? null : this.props.albumList[0].albumId
-                      })(
-                        <Select>
-                            {this.props.albumList ? this.props.albumList.map((value, index) => {
-                                return <Select.Option key={index + ""}
-                                                      value={value.albumId}>{value.name}</Select.Option>;
-                            }) : <CustomSpin/>}
-                        </Select>
-                      )}
-                  </FormItem>
-                  <Dragger accept={"image/*"} multiple customRequest={this.onMultipleSubmit}>
-                      <p></p>
-                      <p>点击批量上传</p>
-                      <p></p>
-                  </Dragger>
+                  <Form onSubmit={(e) => this.onMultipleSubmit(e)}>
+                      <FormItem label={"选择相册"}>
+                          {getFieldDecorator("multiAlbumId", {
+                              initialValue: this.props.albumList.length === 0 ? null : this.props.albumList[0].albumId
+                          })(
+                            <Select style={{width: "100%"}}>
+                                {this.props.albumList ? this.props.albumList.map((value, index) => {
+                                    return <Select.Option key={index + ""}
+                                                          value={value.albumId}>{value.name}</Select.Option>;
+                                }) : <CustomSpin/>}
+                            </Select>
+                          )}
+                      </FormItem>
+                      <Dragger accept={"image/*"} showUploadList={false} multiple onChange={this.onMultiChange}
+                               beforeUpload={() => false}>
+                          <p></p>
+                          <p>点击或者拖动批量上传</p>
+                          <p></p>
+                      </Dragger>
+                      {this.state.uploadMultipleFiles ? `你选择了${this.state.uploadMultipleFiles.length}张图` : ""}
+                      <div style={{textAlign:"center"}}>
+                          <Progress type={"circle"} percent={this.state.uploadProgress}
+                                    style={{display: this.state.uploadUploading ? "inline-block" : "none"}}/>
+                      </div>
+                      <FormItem style={{textAlign: "right"}}>
+                          <Button htmlType={'submit'} disabled={this.state.uploadUploading}
+                                  loading={this.state.uploadUploading}>批量上传</Button>
+                      </FormItem>
+                  </Form>
               </Modal>
               <Modal destroyOnClose onCancel={this.onCreateAlbumCancel} onOk={this.onCreateAlbumSubmit}
                      visible={this.state.createAlbumVisible}>
@@ -285,18 +319,18 @@ class AlbumList extends Component<Props,State> {
                   </Navbar>
                   <Row className={style["bottom-content"]}>
                       <Col span={2} className={style.height100}>
-                          <Menu defaultSelectedKeys={['allFiles']}>
+                          <Menu defaultSelectedKeys={['allFiles']} className={style['menu']}>
                               <MenuItem key={'allPics'}>
-                                  <Link to={'/albumList'}>全部图片</Link>
+                                  <CustomNavLink exact to={'/albumList'}>全部图片</CustomNavLink>
                               </MenuItem>
                               <MenuItem key={'albumlist'}>
-                                  <Link to={'/albumList/albums'}>我的相册</Link>
+                                  <CustomNavLink exact to={'/albumList/albums'}>我的相册</CustomNavLink>
                               </MenuItem>
                               <MenuItem key={'share'}>
-                                  <Link to={'/albumList/share'}>我的分享</Link>
+                                  <CustomNavLink to={'/albumList/share'}>我的分享</CustomNavLink>
                               </MenuItem>
                               <MenuItem key={'rubbish'}>
-                                  <Link to={'/albumList/recycleBin'}>回收站</Link>
+                                  <CustomNavLink to={'/albumList/recycleBin'}>回收站</CustomNavLink>
                               </MenuItem>
                           </Menu>
                           <div className={style["left-nav-bottom"]}>
@@ -316,7 +350,7 @@ class AlbumList extends Component<Props,State> {
                               <Switch>
                                   <Route path={'/albumList/search'} component={SearchComponent}/>
                                   <Route exact path={'/albumList'} component={PhotoShowWrapper}/>
-                                 
+                              
                                   <Route path={'/albumList/albums'}
                                          render={() => <AlbumList1 data={albumListMobx.albumList}/>}/>
                                   <Route path={'/albumList/share'} component={Share}/>

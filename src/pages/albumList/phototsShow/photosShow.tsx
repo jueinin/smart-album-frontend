@@ -29,11 +29,13 @@ class PhotosShow extends Component<Props, State> {
         super(props);
         this.state={editVisible: false, selectedPhotoId: undefined, photoSwipeOpen: false}
     }
-    onEditSubmit=()=>{
+    
+    onEditSubmit = () => {
         let photoName = this.props.form.getFieldValue("photoName");
         if (!photoName) {
             photoName = "";
         }
+        
         let photoDescription = this.props.form.getFieldValue("photoDescription");
         if (!photoDescription) {
             photoDescription = "";
@@ -41,7 +43,7 @@ class PhotosShow extends Component<Props, State> {
         const isPublic = this.props.form.getFieldValue("isPublic") == "isPublic" ? 1 : 0;
         const photoId = this.state.selectedPhotoId;
         const albumId = this.props.match.params.id;
-        Axios.post("/api/photo/edit",{
+        Axios.post("/api/photo/edit", {
             photoId,
             albumId,
             name: photoName,
@@ -50,43 +52,63 @@ class PhotosShow extends Component<Props, State> {
         }).then(value => {
             if (value.data.status === "ok") {
                 message.success("编辑成功!");
-                this.setState({editVisible:false})
-                photoListMobx.updatePhotos(this.props.location.pathname)
+                this.setState({editVisible: false})
+                photoListMobx.updatePhotos(this.props.location.pathname, parseInt(this.props.match.params.id));
             } else {
                 message.error("编辑失败,请检查");
             }
-        }).catch(err=>{
+        }).catch(err => {
             message.error("网络异常")
         })
-    }
+    };
     onEditClick = (index: number) => {
         this.setState({editVisible: true, selectedPhotoId: index})
     };
-    onEditCancel=()=>{
+    onEditCancel = () => {
         this.setState({editVisible: false})
-    }
+    };
     onImgClick = (index: number,e:any) => {
         e.preventDefault();
         this.setState({selectedPhotoId: index,photoSwipeOpen:true})
     };
-    onCancelPhotoswipe=()=>{
-        this.setState({photoSwipeOpen:false})
-    }
-    onDeletePhoto=(photoId:number)=>{
+    onCancelPhotoswipe = () => {
+        this.setState({photoSwipeOpen: false})
+    };
+    onDeletePhoto = (photoId: number) => {
         Axios.post("/api/photo/moveToRecycleBin", [{
             photoId
         }]).then(value => {
             if (value.data.status === "ok") {
                 message.success("删除成功");
                 //添加更新
-                photoListMobx.updatePhotos(this.props.location.pathname,parseInt(this.props.match.params.id));
+                photoListMobx.updatePhotos(this.props.location.pathname, parseInt(this.props.match.params.id));
             } else {
                 message.error("删除失败");
             }
         }).catch(err => {
             message.error("网络异常请重试");
         });
-    }
+    };
+    onDownloadPhoto = (photoId:number) => {
+        Axios.post('/api/photo/downloads',
+          [{
+              photoId: photoId
+          }],
+          {
+              responseType:"blob"
+          }
+        ).then(value => {
+            let blob = new Blob([value.data]);
+            let link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            let photoIndex = this.props.data.findIndex(value1 => {
+                return photoId === value1.photoId;
+            });
+            let photo = this.props.data[photoIndex];
+            link.setAttribute("download", `${photo.name || "图片"}.jpeg`);
+            link.click();
+        });
+    };
     render() {
         const that = this;
         const MenuItem = Menu.Item;
@@ -99,7 +121,7 @@ class PhotosShow extends Component<Props, State> {
                         删除
                     </Popconfirm>
                 </MenuItem>
-                <MenuItem>下载相册</MenuItem>
+                <MenuItem onClick={()=>that.onDownloadPhoto(photoId)}>下载</MenuItem>
             </Menu>;
             return <Col key={photoId + ""} span={4} className={style["img-col"]}>
                 <span>
