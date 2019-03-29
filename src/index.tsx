@@ -22,6 +22,7 @@ import ResetPassword from "./pages/resetPassword/resetPassword";
 import RetrievePassword from "./pages/retrievePassword/retrievePassword";
 import Search from "./pages/search/search";
 import SearchWrapper from "./pages/search/searchWrapper";
+import BackendRoute from "./pages/backend/backendRoute";
 
 export const mockPath = "http://120.79.239.103:8080/mock/16/mockapi";
 export const picUrlPrefix = "/api/photo/show?photoId=";
@@ -54,6 +55,7 @@ ReactDOM.render(
     <LocaleProvider locale={zhCN}>
       <BrowserRouter>
         <Switch>
+          <Route path={'/backend'} component={BackendRoute}/>
           <Route path={"/signin"} component={SignIn}/>
           <Route path={"/signup"} component={SignUp}/>
           <Route path={'/albumlist'} component={AlbumListWrapper}/>  {/* mobx 可以直接套render  就是最外层需要个wrapper*/}
