@@ -65,6 +65,8 @@ class AlbumListItem extends Component<Props,State> {
                 this.setState({editVisible:false})
                 albumListMobx.getAlbumList()
             }
+        }).catch(err=>{
+            let msg=err.response.data
         })
         
     }

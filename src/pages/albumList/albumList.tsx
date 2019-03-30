@@ -12,7 +12,7 @@ import {
     notification, Progress,
     Radio,
     Row,
-    Select,
+    Select, Tag,
     Upload
 } from "antd";
 import Logo from '../../components/logo/logo';
@@ -38,6 +38,8 @@ import NavbarAvatar from "../../components/navbar/navbarAvatar/navbarAvatar";
 import {selectDownloadMobx} from "../../mobx/selectDownloadMobx";
 import SearchComponent from './search/search';
 import CustomNavLink from "../../components/navbar/customNavLink/customNavLink";
+import {PhotoProperties} from "../../mobx/photoListMobx";
+import {elseError} from "../signup/signup";
 interface Props extends FormComponentProps,RouteComponentProps{
     albumList: AlbumProperties[];
     userInfo: UserProperties;
@@ -51,13 +53,17 @@ interface State {
     createAlbumVisible: boolean;
     uploadMultipleFiles: UploadFile[];
     uploadProgress: number;
+    tags: string[];
+    tagInputShow: boolean;
 }
 @observer
 class AlbumList extends Component<Props,State> {
+    tagInput: React.RefObject<Input> = React.createRef();
     constructor(props:any) {
         super(props);
         this.state={uploadModalVisible: false, uploadFileNames: [], uploadFiles: undefined, uploadMultipleVisible: false,
-            uploadMultipleFiles: undefined, createAlbumVisible: false,uploadUploading:false,uploadProgress:0}
+            uploadMultipleFiles: undefined, createAlbumVisible: false,uploadUploading:false,uploadProgress:0, tags: [],
+            tagInputShow: false}
     }
     onUploadClick=()=>{
         this.setState({uploadModalVisible: true})//图片名称 图片描述 是否公开默认不公开
@@ -69,7 +75,7 @@ class AlbumList extends Component<Props,State> {
         this.setState({uploadModalVisible:false})
     }
     onUploadMultipleClose=()=>{
-        this.setState({uploadMultipleVisible: false})
+        this.setState({uploadMultipleVisible: false,uploadMultipleFiles:[]})
     }
     onDraggerChange=(info:UploadChangeParam)=>{
         let filenames=info.fileList.map((value, index) => {
@@ -91,6 +97,7 @@ class AlbumList extends Component<Props,State> {
         if (!photoDescription) {
             photoDescription = "";
         }
+        let tags = this.state.tags;
         const isPublic = this.props.form.getFieldValue("isPublic");
         const file = this.state.uploadFiles[0].originFileObj
         const albumId = this.props.form.getFieldValue("albumId");
@@ -101,6 +108,9 @@ class AlbumList extends Component<Props,State> {
         formData.set("isPublic", isPublic == "isPublic" ? 1 : 0);
         formData.set("file", file);
         formData.set("albumId", albumId);
+        tags.forEach(value => {
+            formData.append('tags', value);
+        });
         Axios.post("/api/photo/upload", formData,{
             headers: {
                 'Content-Type': 'multipart/form-data'
@@ -112,8 +122,15 @@ class AlbumList extends Component<Props,State> {
                 });
                 this.setState({uploadModalVisible: false, uploadUploading: false})
                 albumListMobx.getAlbumList();
+            }
+        }).catch(err=>{
+            let msg = err.response.data.message;
+            if (msg === 'empty file error') {
+                message.error("空文件");
+            }else if (msg === 'file is not an image') {
+                message.error("文件不是图片,请确认");
             } else {
-                notification.info({message: "上传失败"})
+                elseError();
             }
         })
     }
@@ -183,6 +200,22 @@ class AlbumList extends Component<Props,State> {
     onMultiChange = (info:UploadChangeParam) => {
         this.setState({uploadMultipleFiles:info.fileList})
     };
+    onTagClose = (value: string) => {
+        let filterTag = this.state.tags.filter(value1 => {
+            return value !== value1;
+        });
+        this.setState({tags: filterTag})
+    };
+    onPlusTagClick=()=>{
+        this.setState({tagInputShow: true})
+    }
+    onTagInputEnter=(e)=>{
+        let value = this.tagInput.current.input.value;
+        if (!value) {
+            return;
+        }
+        this.setState({tags: [...this.state.tags, value], tagInputShow: false})
+    }
     render() {
         const Search = Input.Search;
         const SubMenu = Menu.SubMenu;
@@ -230,6 +263,15 @@ class AlbumList extends Component<Props,State> {
                                   return <p key={index}>{value}</p>;
                               })}
                           </div>
+                          <FormItem label={'添加标签'}>
+                              {this.state.tags.map((value, index) => {
+                                  return <Tag closable={true} afterClose={() => this.onTagClose(value)}>{value}</Tag>
+                              })}{this.state.tagInputShow ? <React.Fragment><Input className={style['tag-input']}
+                                                                                   ref={this.tagInput}/>
+                                                                <Button onClick={this.onTagInputEnter}>确定</Button>
+                              </React.Fragment> :
+                            <Tag><Icon type={'plus'} onClick={this.onPlusTagClick}/> </Tag>}
+                          </FormItem>
                           <FormItem label={"选择相册"}>
                               {getFieldDecorator("albumId", {
                                   initialValue: this.props.albumList.length === 0 ? null : this.props.albumList[0].albumId
@@ -271,7 +313,7 @@ class AlbumList extends Component<Props,State> {
                           <p></p>
                       </Dragger>
                       {this.state.uploadMultipleFiles ? `你选择了${this.state.uploadMultipleFiles.length}张图` : ""}
-                      <div style={{textAlign:"center"}}>
+                      <div style={{textAlign: "center"}}>
                           <Progress type={"circle"} percent={this.state.uploadProgress}
                                     style={{display: this.state.uploadUploading ? "inline-block" : "none"}}/>
                       </div>
@@ -338,7 +380,7 @@ class AlbumList extends Component<Props,State> {
                               {usedSpace}GB/{storeSpace}GB
                           </div>
                       </Col>
-                      <Col span={20} offset={1} className={style.height100}>
+                      <Col span={20} offset={1} className={`${style.height100} ${style['right-bottom']}`}>
                           <Row className={style["right-top-nav"]}>
                               <Button size={"large"}>相册列表</Button>
                               <Button size={"large"} style={{marginLeft: 20}}>智能分类</Button>

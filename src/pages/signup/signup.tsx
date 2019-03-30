@@ -9,6 +9,9 @@ import NavbarLink from "../../components/navbar/navbarLink/navbarLink";
 interface Props extends FormComponentProps , RouteComponentProps {
 
 }
+export const elseError=()=>{
+    notification.info({message: "因不可抗力,注册失败了"});
+}
 class Signup extends Component<Props,{}> {
     compareFirstPassword=(rules:any,value:any,callback:any)=>{
         //console.log(value+this.props.form.getFieldValue("password"))
@@ -41,23 +44,19 @@ class Signup extends Component<Props,{}> {
                     }
                 ).then(value => {
                     let status = value.data.status as string;
+                    console.log(status);
                     if (status == "ok") {
                         this.props.history.push("/albumlist");
-                    } else if (status.startsWith("user")) {
-                        notification.info({
-                            message:"用户名已经被注册了"
-                        })
-                    }else if (status.startsWith("email")) {
-                        notification.info({
-                            message: "邮箱已经被注册"
-                        })
-                    }else {
-                        notification.info({
-                            message:"账号密码错误,请重试"
-                        })
                     }
                 }).catch(err=>{
-                    notification.info({message:"因不可抗力,注册失败了"})
+                    let res = err.response.data.message;
+                    if (res === 'username has been registered') {
+                        message.error("用户名已经被注册");
+                    }else if (res === 'email has been registered') {
+                        message.error("邮箱已经被注册");
+                    } else {
+                        elseError();
+                    }
                 })
             } else {
                 message.error("请检查输入内容");

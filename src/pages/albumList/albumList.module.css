@@ -1,6 +1,8 @@
 
 .body {
-    height: 100vh;
+    height: 98vh;
+    display: flex;
+    flex-direction: column;
 }
 .nav {
     height: 7%;
@@ -52,7 +54,15 @@
     border-bottom: 1px solid black;
     padding: 10px;
 }
+.right-bottom {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
 .upload-modal-submit {
     display: flex;
     justify-content: flex-end;
+}
+.tag-input {
+    width: 44px;
 }

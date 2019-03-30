@@ -17,3 +17,6 @@
 .img-col:hover .more-icon {
     display: block;
 }
+.tag-input {
+    width: 44px;
+}

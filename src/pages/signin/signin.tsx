@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
 import style from './signin.module.css';
-import {Button, Form, Icon, Input, notification} from "antd";
+import {Button, Form, Icon, Input, message, notification} from "antd";
 import {Link, RouteComponentProps} from "react-router-dom";
 import Axios from "axios";
+import {elseError} from "../signup/signup";
 interface Props extends RouteComponentProps{
 
 }
@@ -25,10 +26,15 @@ class SignIn extends Component<Props,{}> {
             const status = value.data.status as string;
             if (status == 'ok') {
                 this.props.history.push("/albumlist");
-            }else if (status.startsWith("username")) {
-                notification.open({message:"用户名或者邮箱不存在"})
-            }else if (status.startsWith("wrong")) {
-                notification.open({message: "密码错误"})
+            }
+        }).catch(error=>{
+            let msg= error.response.data.message;
+            if (msg === 'username or email does not exist') {
+                message.error("用户名或者邮箱不存在");
+            }else if (msg === 'password error') {
+                message.error('用户名或密码错误');
+            } else {
+                elseError();
             }
         })
     }

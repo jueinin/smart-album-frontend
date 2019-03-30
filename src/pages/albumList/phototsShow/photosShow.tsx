@@ -2,7 +2,22 @@ import React, {Component} from 'react';
 import {RouteComponentProps} from "react-router";
 import Axios from "axios";
 import CustomSpin from "../../../components/CustomSpin/CustomSpin";
-import {Button, Checkbox, Col, Dropdown, Form, Icon, Input, Menu, message, Modal, Popconfirm, Radio, Row} from "antd";
+import {
+    Button,
+    Checkbox,
+    Col,
+    Dropdown,
+    Form,
+    Icon,
+    Input,
+    Menu,
+    message,
+    Modal,
+    Popconfirm,
+    Radio,
+    Row,
+    Tag
+} from "antd";
 import {Link} from "react-router-dom";
 import style from './photosShow.module.css';
 import {FormComponentProps} from "antd/lib/form";
@@ -17,17 +32,21 @@ interface RouteParams{
 }
 interface Props extends RouteComponentProps<RouteParams>,FormComponentProps{
     data: PhotoProperties[];
+    searchShowPage?: boolean;
 }
 interface State {
     editVisible: boolean;
     selectedPhotoId: number;
     photoSwipeOpen: boolean;
+    tags: string[];
+    tagInputShow: boolean;
 }
 @observer
 class PhotosShow extends Component<Props, State> {
+    tagInput: React.RefObject<Input> = React.createRef();
     constructor(props:any) {
         super(props);
-        this.state={editVisible: false, selectedPhotoId: undefined, photoSwipeOpen: false}
+        this.state={editVisible: false, selectedPhotoId: undefined, photoSwipeOpen: false,tags:[], tagInputShow: false}
     }
     
     onEditSubmit = () => {
@@ -43,12 +62,14 @@ class PhotosShow extends Component<Props, State> {
         const isPublic = this.props.form.getFieldValue("isPublic") == "isPublic" ? 1 : 0;
         const photoId = this.state.selectedPhotoId;
         const albumId = this.props.match.params.id;
+        const tags = this.state.tags;
         Axios.post("/api/photo/edit", {
             photoId,
             albumId,
             name: photoName,
             description: photoDescription,
-            isPublic
+            isPublic,
+            tags
         }).then(value => {
             if (value.data.status === "ok") {
                 message.success("编辑成功!");
@@ -62,10 +83,16 @@ class PhotosShow extends Component<Props, State> {
         })
     };
     onEditClick = (index: number) => {
-        this.setState({editVisible: true, selectedPhotoId: index})
+        this.setState({editVisible: true, selectedPhotoId: index},()=>{
+            this.setState({
+                tags:
+                this.props.data.filter(value => {
+                    return value.photoId === this.state.selectedPhotoId;
+                })[0].tags})
+        })
     };
     onEditCancel = () => {
-        this.setState({editVisible: false})
+        this.setState({editVisible: false, tags: []})
     };
     onImgClick = (index: number,e:any) => {
         e.preventDefault();
@@ -109,12 +136,28 @@ class PhotosShow extends Component<Props, State> {
             link.click();
         });
     };
+    onTagClose = (value: string) => {
+        let filterTag = this.state.tags.filter(value1 => {
+            return value !== value1;
+        });
+        this.setState({tags: filterTag})
+    };
+    onPlusTagClick=()=>{
+        this.setState({tagInputShow: true})
+    }
+    onTagInputEnter=(e)=>{
+        let value = this.tagInput.current.input.value;
+        if (!value) {
+            return;
+        }
+        this.setState({tags: [...this.state.tags, value], tagInputShow: false})
+    }
     render() {
         const that = this;
         const MenuItem = Menu.Item;
         const getFieldDecorator = this.props.form.getFieldDecorator;
         let Item = function (index: number, photoId: number) {
-            const overlay = <Menu>
+            let overlay = <Menu>
                 <MenuItem onClick={() => that.onEditClick(photoId)}>编辑</MenuItem>
                 <MenuItem>
                     <Popconfirm title={"确定删除吗"} onConfirm={() => that.onDeletePhoto(photoId)}>
@@ -123,18 +166,20 @@ class PhotosShow extends Component<Props, State> {
                 </MenuItem>
                 <MenuItem onClick={()=>that.onDownloadPhoto(photoId)}>下载</MenuItem>
             </Menu>;
+    
             return <Col key={photoId + ""} span={4} className={style["img-col"]}>
                 <span>
                     <img style={{width: "100%", maxHeight: "100%"}}
-                                                   onClickCapture={(e) => that.onImgClick(photoId, e)}
-                                                   src={picThumbnailUrlPrefix + photoId}/>
+                         onClickCapture={(e) => that.onImgClick(photoId, e)}
+                         src={picThumbnailUrlPrefix + photoId}/>
                 </span>
-                <Dropdown overlay={overlay}>
+                {that.props.searchShowPage ? null : <Dropdown overlay={overlay}>
                     <Link to={'#'} className={style["more-icon"]}><Icon type="more"/></Link>
-                </Dropdown>
+                </Dropdown>}
             </Col>;
         };
-        let name = "";let description = "";
+        let name = "";
+        let description = "";
         if (this.state.selectedPhotoId) {
             name = this.props.data.filter(value => {
                 return value.photoId === this.state.selectedPhotoId;
@@ -156,6 +201,7 @@ class PhotosShow extends Component<Props, State> {
                 title: value.name
             }
         });
+        let FormItem = Form.Item;
         return (
             <div>
                 <Modal destroyOnClose onOk={this.onEditSubmit} visible={this.state.editVisible}
@@ -185,6 +231,16 @@ class PhotosShow extends Component<Props, State> {
                                 </Radio.Group>
                             )}
                         </Form.Item>
+                        <FormItem label={'修改标签'}>
+                            {this.state.tags.map((value, index) => {
+                                return <Tag key={index + ""} closable={true}
+                                            afterClose={() => this.onTagClose(value)}>{value}</Tag>;
+                            })}{this.state.tagInputShow ? <React.Fragment><Input className={style['tag-input']}
+                                                                                 ref={this.tagInput}/>
+                              <Button onClick={this.onTagInputEnter}>确定</Button>
+                          </React.Fragment> :
+                          <Tag><Icon type={'plus'} onClick={this.onPlusTagClick}/> </Tag>}
+                        </FormItem>
                     </Form>
                 </Modal>
                 <Row gutter={32}>

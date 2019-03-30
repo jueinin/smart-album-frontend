@@ -11,6 +11,7 @@ export interface PhotoProperties {
   size: number;
   width: number;
   height: number;
+  tags: string[];
   originalTime: string;
 }
 class PhotoListMobx {

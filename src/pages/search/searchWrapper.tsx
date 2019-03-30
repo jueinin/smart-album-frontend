@@ -3,7 +3,8 @@ import Search from './search';
 import {RouteComponentProps} from "react-router";
 import querystring from "query-string";
 import {photoListMobx} from "../../mobx/photoListMobx";
-
+import {observer} from "mobx-react";
+@observer
 class SearchWrapper extends Component<RouteComponentProps<{id:string}>,{}> {
   componentDidMount(): void {
     let keyword = querystring.parse(this.props.location.search.substring(1)).keyword as string;
@@ -13,7 +14,7 @@ class SearchWrapper extends Component<RouteComponentProps<{id:string}>,{}> {
   render() {
     return (
       <div>
-        <Search {...this.props} photos={photoListMobx.photoList} />
+        <Search {...this.props} photos={photoListMobx.photoList}/>
       </div>
     );
   }

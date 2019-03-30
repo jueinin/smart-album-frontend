@@ -14,7 +14,7 @@ class AlbumListWrapper extends Component<RouteComponentProps,{}> {
   
   render() {
     return (
-      <AlbumList albumList={albumListMobx.albumList} userInfo={userInfoMobx.userInfo}{...this.props}/>
+      <AlbumList albumList={albumListMobx.albumList} userInfo={userInfoMobx.userInfo} {...this.props}/>
     );
   }
 }
