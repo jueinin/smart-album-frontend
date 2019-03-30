@@ -19,7 +19,7 @@ class PhotoListMobx {
   
   @action
   getScopeSearchPhotos(keyword: string) {
-    Axios.get("/api/photo/scopeSearch",{
+    Axios.get("/api/photo/personalSearch",{
       params:{
         keyword
       }

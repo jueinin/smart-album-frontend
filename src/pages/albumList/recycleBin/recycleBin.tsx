@@ -2,13 +2,16 @@ import React, {Component} from 'react';
 import {Button, message, Table} from "antd";
 import Axios from "axios";
 import {mockPath} from "../../../index";
-import {Data} from "unist";
 import style from './recycleBin.module.css';
 import CustomSpin from "../../../components/CustomSpin/CustomSpin";
 import {PhotoProperties} from "../../../mobx/photoListMobx";
 import {TableRowSelection} from "antd/lib/table";
+
+interface Data extends PhotoProperties {
+
+}
 interface State {
-    data: PhotoProperties[];
+    data: Data[];
     selectedRow: PhotoProperties[];
 }
 class RecycleBin extends Component<{},State> {
@@ -94,7 +97,12 @@ class RecycleBin extends Component<{},State> {
                           render={(text: PhotoProperties['size'], record: any) => {
                             return (text/1024/1024).toFixed(2)+"MB"
                           }}/>
-                  <Column title={'到期时间'} key={'deleteTime'} dataIndex={"expireTime"}/>
+                  <Column title={'到期时间'} key={'deleteTime'} dataIndex={"deleteTime"} render={(text:string,record)=>{
+                      let date = new Date(text.substring(0, 10));
+                      date.setMonth(date.getMonth() + 2);
+                      return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+                  }
+                  }/>
                   <Column title={"操作"} key={'method'} dataIndex={'photoId'} render={(text: any, record) => {
                       return <div>
                           <Button onClick={() => that.permanentDeletes(text)}>永久删除</Button>

@@ -16,7 +16,12 @@ class Search extends Component<Props,State> {
   };
   componentDidMount(): void {
     let keyword = this.props.location.search.substring(1).split("=")[1];
-    this.setState({keyword: keyword});
+    //this.setState({keyword: keyword});
+    photoListMobx.getScopeSearchPhotos(keyword);
+  }
+  componentWillReceiveProps(nextProps: Readonly<Props>, nextContext: any): void {
+    let keyword = nextProps.location.search.substring(1).split("=")[1];
+    //this.setState({keyword: keyword})
     photoListMobx.getScopeSearchPhotos(keyword);
   }
   

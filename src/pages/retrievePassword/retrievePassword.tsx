@@ -6,6 +6,7 @@ import NavbarLink from "../../components/navbar/navbarLink/navbarLink";
 import {Button, Form, Input, message} from "antd";
 import style from "../resetPassword/resetPassword.module.css";
 import {FormComponentProps} from "antd/lib/form";
+import {elseError} from "../signup/signup";
 interface Props extends RouteComponentProps,FormComponentProps{
 
 }
@@ -30,6 +31,13 @@ class RetrievePassword extends Component<Props,State> {
       if (value.data.status === 'ok') {
         this.setState({verificated: true})
         this.userId = value.data.userId;
+      }
+    }).catch(err=>{
+      let msg = err.response.data.message;
+      if (msg === 'sid expired or not exist') {
+        message.error("链接过期或不存在");
+      } else {
+        elseError();
       }
     })
     
@@ -57,6 +65,13 @@ class RetrievePassword extends Component<Props,State> {
             setTimeout(()=>{
               this.props.history.push("/signin")
             },1000)
+          }
+        }).catch(err=>{
+          let msg = err.response.data.message;
+          if (msg === 'sid expired or not exist') {
+            message.error("链接过期或不存在");
+          } else {
+            elseError();
           }
         })
       }

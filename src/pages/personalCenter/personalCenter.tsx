@@ -25,10 +25,11 @@ class PersonalCenter extends Component<Props,{}> {
         this.props.history.push(link);
     };
     render() {
-        let nickname = "", avatar = "";
+        let nickname = "", avatar = "", signature = "";
         if (this.props.userInfo) {
             nickname = this.props.userInfo.nickname;
             avatar = this.props.userInfo.avatar;
+            signature = this.props.userInfo.signature;
         }
         return (
           <div>
@@ -37,7 +38,7 @@ class PersonalCenter extends Component<Props,{}> {
                       <NavbarLink title={"首页"} path={'/ '}/>
                       <NavbarLink title={'个人主页'} path={'/albumlist'}/>
                       <NavbarLink title={'个人中心'} path={'/personalCenter'}/>
-                      <NavbarAvatar offset={12} nickname={nickname} avatar={avatar} {...this.props}/>
+                      <NavbarAvatar signature={signature} offset={12} nickname={nickname} avatar={avatar} {...this.props}/>
                   </Navbar>
                   <Row className={style['bottom-row']}>
                       <Col span={2} className={style['left-nav']}>

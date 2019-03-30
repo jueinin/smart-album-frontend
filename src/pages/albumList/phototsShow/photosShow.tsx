@@ -169,7 +169,7 @@ class PhotosShow extends Component<Props, State> {
     
             return <Col key={photoId + ""} span={4} className={style["img-col"]}>
                 <span>
-                    <img style={{width: "100%", maxHeight: "100%"}}
+                    <img className={style['img']}
                          onClickCapture={(e) => that.onImgClick(photoId, e)}
                          src={picThumbnailUrlPrefix + photoId}/>
                 </span>

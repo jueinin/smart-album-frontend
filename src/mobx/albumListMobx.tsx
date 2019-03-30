@@ -30,6 +30,11 @@ class AlbumListMobx {
         message.success("删除成功");
         albumListMobx.getAlbumList();
       }
+    }).catch(err=>{
+      let msg = err.response.data.message;
+      if (msg === 'forbidden edit') {
+        message.error("禁止编辑");
+      }
     })
   }
 }

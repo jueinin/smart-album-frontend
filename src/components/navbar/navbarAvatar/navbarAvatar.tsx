@@ -1,11 +1,12 @@
 import React, {Component} from 'react';
-import {Button, Col, Dropdown, message} from "antd";
+import {Button, Col, Dropdown, Menu, message} from "antd";
 import {Link, RouteComponentProps} from "react-router-dom";
 import Axios from "axios";
 import style from './navbarAvatar.module.css';
 interface Props extends RouteComponentProps{
   nickname: string;
   avatar: string;
+  signature: string;
   span?: number;
   offset?: number;
 }
@@ -19,16 +20,19 @@ class NavbarAvatar extends Component<Props,{}> {
     })
   }
   render() {
-    let avatarOverlay=<div style={{textAlign:"center"}}>
-      <Button htmlType={'button'}onClick={this.onLogout}>
-        退出登录
-      </Button>
-    </div>
+    let avatarOverlay=<Menu style={{textAlign:"center"}}>
+      <Menu.Item>昵称:&nbsp;{this.props.nickname}</Menu.Item>
+      <Menu.Item>个性签名:&nbsp;{this.props.signature||"还没有个性签名呢"}</Menu.Item>
+      <Menu.Item>
+        <Button htmlType={'button'}onClick={this.onLogout}>
+          退出登录
+        </Button>
+      </Menu.Item>
+    </Menu>
     return (
         <Dropdown overlay={avatarOverlay}>
           <Col span={this.props.span||2} offset={this.props.offset||4} className={style["nav-buttons"]}>
             <Link className={style['avatar-link']} to={'/personalCenter'}>
-              {this.props.nickname}&nbsp;&nbsp;&nbsp;&nbsp;
               <img className={style['avatar-img']}
                    src={this.props.avatar}/>
             </Link>

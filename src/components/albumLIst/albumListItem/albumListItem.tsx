@@ -10,6 +10,7 @@ import {observer} from "mobx-react";
 import {albumListMobx} from "../../../mobx/albumListMobx";
 import {PhotoProperties} from "../../../mobx/photoListMobx";
 import {picThumbnailUrlPrefix} from "../../../index";
+import {elseError} from "../../../pages/signup/signup";
 interface Props extends FormComponentProps{
     id: number;
     cover:number;//url
@@ -66,7 +67,12 @@ class AlbumListItem extends Component<Props,State> {
                 albumListMobx.getAlbumList()
             }
         }).catch(err=>{
-            let msg=err.response.data
+            let msg = err.response.data.message;
+            if (msg === 'forbidden edit') {
+                message.error('禁止编辑默认相册');
+            } else {
+                elseError();
+            }
         })
         
     }
@@ -104,7 +110,7 @@ class AlbumListItem extends Component<Props,State> {
           <div className={this.props.className}>
               <div className={style.wrapper}>
                   <Link to={'/albumlist/' + this.props.id}>
-                      <img className={style.img} src={"/api/photo/show?photoId=" + this.props.cover}/>
+                      <img className={style.img} src={"/api/photo/showThumbnail?photoId=" + this.props.cover}/>
                       <h3 style={{marginTop: 15}}>{this.props.title}</h3>
                   </Link>
                   <Dropdown overlay={overlay}>
@@ -133,14 +139,6 @@ class AlbumListItem extends Component<Props,State> {
                               })[0].description : ""
                           })(
                             <Input type={"text"}/>
-                          )}
-                      </FormItem>
-                      <FormItem label={'隐私设置'}>
-                          {getFieldDecorator("isPublic", {initialValue: "isPublic"})(
-                            <RadioGroup>
-                                <Radio value={'isPublic'}>公开</Radio>
-                                <Radio value={'isPrivate'}>私密</Radio>
-                            </RadioGroup>
                           )}
                       </FormItem>
                       {this.state.photoListData ? <FormItem label={'选择封面'}>

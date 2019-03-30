@@ -38,7 +38,7 @@ import NavbarAvatar from "../../components/navbar/navbarAvatar/navbarAvatar";
 import {selectDownloadMobx} from "../../mobx/selectDownloadMobx";
 import SearchComponent from './search/search';
 import CustomNavLink from "../../components/navbar/customNavLink/customNavLink";
-import {PhotoProperties} from "../../mobx/photoListMobx";
+import {photoListMobx, PhotoProperties} from "../../mobx/photoListMobx";
 import {elseError} from "../signup/signup";
 interface Props extends FormComponentProps,RouteComponentProps{
     albumList: AlbumProperties[];
@@ -72,10 +72,10 @@ class AlbumList extends Component<Props,State> {
         this.setState({uploadMultipleVisible: true})
     }
     onUploadModalClose=()=>{
-        this.setState({uploadModalVisible:false})
+        this.setState({uploadModalVisible:false, uploadFileNames: [],tags:[],tagInputShow:false})
     }
     onUploadMultipleClose=()=>{
-        this.setState({uploadMultipleVisible: false,uploadMultipleFiles:[]})
+        this.setState({uploadMultipleVisible: false,uploadMultipleFiles:[],tags:[], tagInputShow: false            })
     }
     onDraggerChange=(info:UploadChangeParam)=>{
         let filenames=info.fileList.map((value, index) => {
@@ -108,9 +108,14 @@ class AlbumList extends Component<Props,State> {
         formData.set("isPublic", isPublic == "isPublic" ? 1 : 0);
         formData.set("file", file);
         formData.set("albumId", albumId);
-        tags.forEach(value => {
-            formData.append('tags', value);
-        });
+        if (tags.length !== 0) {
+            tags.forEach(value => {
+                formData.append('tags', value);
+            });
+        } else {
+            formData.append("tags", null);
+        }
+        
         Axios.post("/api/photo/upload", formData,{
             headers: {
                 'Content-Type': 'multipart/form-data'
@@ -129,13 +134,20 @@ class AlbumList extends Component<Props,State> {
                 message.error("空文件");
             }else if (msg === 'file is not an image') {
                 message.error("文件不是图片,请确认");
+            }else if (msg === 'available space already full') {
+                message.error("空间已满,请检查你的容量");
+            }else if (msg === 'suffix error') {
+                message.error("文件后缀名错误");
+            } else if (msg === 'upload failed') {
+                message.error('上传失败');
             } else {
                 elseError();
             }
-        })
+        });
     }
     onMultiUploadProgress=(e:ProgressEvent)=>{
-        this.setState({uploadProgress:e.loaded/e.total})
+        let result = ((e.loaded / e.total) * 100).toFixed(2);
+        this.setState({uploadProgress: parseFloat(result)})
     }
     onMultipleSubmit=(e:FormEvent)=>{                //要改  体验不好
         e.preventDefault();
@@ -157,12 +169,16 @@ class AlbumList extends Component<Props,State> {
         }).then(value => {
             if (value.data.successCount !== this.state.uploadMultipleFiles.length) {
                 notification.info({message: "上传失败"});
+                this.setState({uploadUploading: false})
             } else {
                 notification.success({message: "上传成功"})
                 this.setState({uploadUploading: false,uploadMultipleVisible:false})
+                albumListMobx.getAlbumList();
+                photoListMobx.updatePhotos(this.props.location.pathname);
             }
         }).catch(err=>{
             notification.info({message: "上传失败"});
+            this.setState({uploadUploading: false})
         })
     }
     onCreateAlbumCancel=()=>{
@@ -191,20 +207,20 @@ class AlbumList extends Component<Props,State> {
             albumListMobx.getAlbumList();
         })
     }
-    onDownloadClick=()=>{
-        selectDownloadMobx.downloadClick = true;     //批量下载后续再说吧
-    }
     onSearch=(value:any,e:any)=>{
         this.props.history.push("/albumlist/search?keyword=" + value);
     }
     onMultiChange = (info:UploadChangeParam) => {
         this.setState({uploadMultipleFiles:info.fileList})
     };
-    onTagClose = (value: string) => {
-        let filterTag = this.state.tags.filter(value1 => {
-            return value !== value1;
-        });
-        this.setState({tags: filterTag})
+    onTagClose = (value: string,e) => {
+        e.preventDefault();
+        console.log(value);
+        // console.log(value);
+        // let filterTag = this.state.tags.filter(value1 => {
+        //     return value1 !== value;
+        // });
+        // this.setState({tags: filterTag})
     };
     onPlusTagClick=()=>{
         this.setState({tagInputShow: true})
@@ -223,12 +239,21 @@ class AlbumList extends Component<Props,State> {
         const FormItem = Form.Item;
         const Dragger = Upload.Dragger;
         const getFieldDecorator = this.props.form.getFieldDecorator;
-        let nickname = "", avatar = "", storeSpace:number = 0, usedSpace = 0;
+        let nickname = "", avatar = "", storeSpace: number | string = 0, usedSpace: number | string = 0, signature = "";
+        let progress = 0;
         if (this.props.userInfo) {
             nickname = this.props.userInfo.nickname;
             avatar = this.props.userInfo.avatar;
+            signature = this.props.userInfo.signature;
             storeSpace = parseFloat((this.props.userInfo.storeSpace / 1024 / 1024 / 1024).toFixed(2));
             usedSpace=parseFloat((this.props.userInfo.usedSpace / 1024 / 1024 / 1024).toFixed(2))
+            if (usedSpace === 0) {
+                usedSpace = (usedSpace * 1024).toFixed(2) + "MB";
+            } else {
+                usedSpace = usedSpace + "GB";
+            }
+            let temp = parseInt(usedSpace.substring(0, usedSpace.length - 2));
+            progress = temp / storeSpace;
         }
         return (
           <div>
@@ -265,7 +290,7 @@ class AlbumList extends Component<Props,State> {
                           </div>
                           <FormItem label={'添加标签'}>
                               {this.state.tags.map((value, index) => {
-                                  return <Tag closable={true} afterClose={() => this.onTagClose(value)}>{value}</Tag>
+                                  return <Tag key={value} closable onClose={(e) => this.onTagClose(value,e)}>{value}</Tag>
                               })}{this.state.tagInputShow ? <React.Fragment><Input className={style['tag-input']}
                                                                                    ref={this.tagInput}/>
                                                                 <Button onClick={this.onTagInputEnter}>确定</Button>
@@ -357,7 +382,7 @@ class AlbumList extends Component<Props,State> {
                               <Icon type="upload"/>批量上传
                           </Button>
                       </Col>
-                      <NavbarAvatar avatar={avatar} nickname={nickname}{...this.props}/>
+                      <NavbarAvatar signature={signature} avatar={avatar} nickname={nickname}{...this.props}/>
                   </Navbar>
                   <Row className={style["bottom-content"]}>
                       <Col span={2} className={style.height100}>
@@ -376,18 +401,11 @@ class AlbumList extends Component<Props,State> {
                               </MenuItem>
                           </Menu>
                           <div className={style["left-nav-bottom"]}>
-                              <SizeProgress progress={usedSpace / storeSpace} height={10}/>
-                              {usedSpace}GB/{storeSpace}GB
+                              <SizeProgress progress={ progress} height={10}/>
+                              {usedSpace}/{storeSpace}GB
                           </div>
                       </Col>
                       <Col span={20} offset={1} className={`${style.height100} ${style['right-bottom']}`}>
-                          <Row className={style["right-top-nav"]}>
-                              <Button size={"large"}>相册列表</Button>
-                              <Button size={"large"} style={{marginLeft: 20}}>智能分类</Button>
-                              <Button size={"large"} style={{marginLeft: 20}}>全部图片</Button>
-                              <Button size={"large"} style={{marginLeft: "75%"}}
-                                      onClick={this.onDownloadClick}>下载</Button>
-                          </Row>
                           <div>
                               <Switch>
                                   <Route path={'/albumList/search'} component={SearchComponent}/>

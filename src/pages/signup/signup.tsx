@@ -54,7 +54,11 @@ class Signup extends Component<Props,{}> {
                         message.error("用户名已经被注册");
                     }else if (res === 'email has been registered') {
                         message.error("邮箱已经被注册");
-                    } else {
+                    } else if (res === 'already logged in') {
+                        message.success("已经登录,即将跳转")
+                        this.props.history.push("/albumlist");
+                    }else {
+                        
                         elseError();
                     }
                 })
