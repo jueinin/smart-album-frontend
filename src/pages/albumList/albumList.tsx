@@ -221,12 +221,10 @@ class AlbumList extends Component<Props,State> {
     }
     onTagClose = (value: string,e) => {
         e.preventDefault();
-        console.log(value);
-        // console.log(value);
-        // let filterTag = this.state.tags.filter(value1 => {
-        //     return value1 !== value;
-        // });
-        // this.setState({tags: filterTag})
+        let filterTag = this.state.tags.filter(value1 => {
+            return value1 !== value;
+        });
+        this.setState({tags: filterTag})
     };
     onPlusTagClick=()=>{
         this.setState({tagInputShow: true})
@@ -335,11 +333,11 @@ class AlbumList extends Component<Props,State> {
                 <FormItem label={'添加标签'}>
                   {this.state.tags.map((value, index) => {
                     return <Tag key={value} closable onClose={(e) => this.onTagClose(value, e)}>{value}</Tag>
-                  })}{this.state.tagInputShow ? <React.Fragment><Input className={style['tag-input']}
+                  })}{this.state.tagInputShow ? <React.Fragment><Input className={style['tag-input']} autoFocus
                                                                        ref={this.tagInput}/>
                     <Button onClick={this.onTagInputEnter}>确定</Button>
                   </React.Fragment> :
-                  <Tag><Icon type={'plus'} onClick={this.onPlusTagClick}/> </Tag>}
+                  <Tag onClick={this.onPlusTagClick}><Icon type={'plus'}/> </Tag>}
                 </FormItem>
                 <FormItem label={"选择相册"}>
                   {getFieldDecorator("albumId", {

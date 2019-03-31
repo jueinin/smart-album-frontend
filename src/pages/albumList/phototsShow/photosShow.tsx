@@ -233,13 +233,13 @@ class PhotosShow extends Component<Props, State> {
                         </Form.Item>
                         <FormItem label={'修改标签'}>
                             {this.state.tags.map((value, index) => {
-                                return <Tag key={index + ""} closable={true}
-                                            afterClose={() => this.onTagClose(value)}>{value}</Tag>;
-                            })}{this.state.tagInputShow ? <React.Fragment><Input className={style['tag-input']}
+                                return <Tag key={index + ""} closable
+                                            onClose={() => this.onTagClose(value)}>{value}</Tag>;
+                            })}{this.state.tagInputShow ? <React.Fragment><Input className={style['tag-input']} autoFocus
                                                                                  ref={this.tagInput}/>
                               <Button onClick={this.onTagInputEnter}>确定</Button>
                           </React.Fragment> :
-                          <Tag><Icon type={'plus'} onClick={this.onPlusTagClick}/> </Tag>}
+                          <Tag onClick={this.onPlusTagClick}><Icon type={'plus'}/> </Tag>}
                         </FormItem>
                     </Form>
                 </Modal>
