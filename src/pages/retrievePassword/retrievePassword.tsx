@@ -7,6 +7,7 @@ import {Button, Form, Input, message} from "antd";
 import style from "../resetPassword/resetPassword.module.css";
 import {FormComponentProps} from "antd/lib/form";
 import {elseError} from "../signup/signup";
+import {passwordField, passwordOption, rePasswordField, rePasswordOption} from "../../tools/fieldsValidate";
 interface Props extends RouteComponentProps,FormComponentProps{
 
 }
@@ -43,37 +44,31 @@ class RetrievePassword extends Component<Props,State> {
     
     //let sid = this.props.location.pathname.split("?")[1].split("=")[1];
   }
-  validator=(rule:any,value:any,callback:any)=>{
-    let prePassword = this.props.form.getFieldValue("password");
-    if (prePassword === value) {
-      callback()
-      return;
-    }
-    callback("两次输入密码不同")
-  }
   onSubmit=(e:FormEvent)=>{
     e.preventDefault()
     this.props.form.validateFields((err:any,value:any)=>{
       if (!err) {
         let formData = new FormData();
         formData.append("sid", this.sid);
-        formData.append("userId", this.userId+"");
-        formData.append("newPassword",value.password)
-        Axios.post("/api/user/retrievePassword",formData).then(value1 => {
+        formData.append("userId", this.userId + "");
+        formData.append("newPassword", value.password);
+        Axios.post("/api/user/retrievePassword", formData).then(value1 => {
           if (value1.data.status === 'ok') {
             message.success("修改成功,1秒后返回")
-            setTimeout(()=>{
+            setTimeout(() => {
               this.props.history.push("/signin")
-            },1000)
+            }, 1000)
           }
-        }).catch(err=>{
+        }).catch(err => {
           let msg = err.response.data.message;
           if (msg === 'sid expired or not exist') {
             message.error("链接过期或不存在");
           } else {
             elseError();
           }
-        })
+        });
+      } else {
+        message.warn("请检查您的输入")
       }
     })
    
@@ -87,29 +82,14 @@ class RetrievePassword extends Component<Props,State> {
         </Navbar>
         <Form className={style.form} onSubmit={this.onSubmit}>
           <Form.Item label={'输入您的新密码'}>
-            &nbsp;&nbsp;{getFieldDecorator("password",{
-            rules:[
-              {
-                required: true,type:"string",message:"请输入密码"
-              }
-            ]
-          })(
-            <Input type={'password'}/>
+            &nbsp;&nbsp;{getFieldDecorator("password", passwordOption())(
+            passwordField()
           )}
           </Form.Item>
           <Form.Item label={"确认密码"}>
             &nbsp;&nbsp; {
-            getFieldDecorator('repassword',{
-              rules:[
-                {
-                  required: true,type:"string", message: '请输入确认密码'
-                },
-                {
-                  validator: this.validator
-                }
-              ]
-            })(
-              <Input type={'password'}/>
+            getFieldDecorator('repassword', rePasswordOption(this.props.form.getFieldValue('password')))(
+              rePasswordField()
             )
           }
           </Form.Item>

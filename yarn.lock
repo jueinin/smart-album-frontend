@@ -10857,6 +10857,11 @@ value-equal@^0.4.0:
   resolved "http://registry.npm.taobao.org/value-equal/download/value-equal-0.4.0.tgz#c5bdd2f54ee093c04839d71ce2e4758a6890abc7"
   integrity sha1-xb3S9U7gk8BIOdcc4uR1imiQq8c=
 
+vanilla-lazyload@^11.0.6:
+  version "11.0.6"
+  resolved "http://registry.npm.taobao.org/vanilla-lazyload/download/vanilla-lazyload-11.0.6.tgz#76a13ece6c256d5f6451bc0687038c485441ca11"
+  integrity sha1-dqE+zmwlbV9kUbwGhwOMSFRByhE=
+
 vary@~1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/vary/-/vary-1.1.2.tgz#2299f02c6ded30d4a5961b0b9f74524a18f634fc"

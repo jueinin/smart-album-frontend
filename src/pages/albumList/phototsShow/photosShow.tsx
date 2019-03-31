@@ -22,13 +22,13 @@ import {Link} from "react-router-dom";
 import style from './photosShow.module.css';
 import {FormComponentProps} from "antd/lib/form";
 import {photoListMobx, PhotoProperties} from "../../../mobx/photoListMobx";
-import {picThumbnailUrlPrefix, picUrlPrefix} from "../../../index";
+import { picThumbnailUrlPrefix, picUrlPrefix} from "../../../index";
 import {observer} from "mobx-react";
 // @ts-ignore
 import {PhotoSwipe} from 'react-photoswipe';
 import 'react-photoswipe/lib/photoswipe.css';
 interface RouteParams{
-    id: string;
+    id?: string;
 }
 interface Props extends RouteComponentProps<RouteParams>,FormComponentProps{
     data: PhotoProperties[];
@@ -44,9 +44,16 @@ interface State {
 @observer
 class PhotosShow extends Component<Props, State> {
     tagInput: React.RefObject<Input> = React.createRef();
+    scrollPending: boolean = false;//是否处于底部ajax状态
     constructor(props:any) {
         super(props);
         this.state={editVisible: false, selectedPhotoId: undefined, photoSwipeOpen: false,tags:[], tagInputShow: false}
+    }
+    componentWillReceiveProps(nextProps: Readonly<Props>, nextContext: any): void {
+    
+    }
+    componentDidMount(): void {
+    
     }
     
     onEditSubmit = () => {
@@ -152,6 +159,20 @@ class PhotosShow extends Component<Props, State> {
         }
         this.setState({tags: [...this.state.tags, value], tagInputShow: false})
     }
+    onScroll=(e:any)=>{
+        let ref: HTMLDivElement = e.currentTarget;
+        // console.log(ref.clientHeight);
+        // console.log(ref.scrollHeight);
+        // console.log(ref.scrollTop);
+        if (ref.scrollHeight - ref.scrollTop < 2 * ref.clientHeight &&!this.scrollPending) {
+            //z这里应该只触发一次
+            this.scrollPending = true;
+            console.log('ajax');
+            setTimeout(() => {
+                this.scrollPending = false;
+            }, 2000);
+        }
+    }
     render() {
         const that = this;
         const MenuItem = Menu.Item;
@@ -169,7 +190,7 @@ class PhotosShow extends Component<Props, State> {
     
             return <Col key={photoId + ""} span={4} className={style["img-col"]}>
                 <span>
-                    <img className={style['img']}
+                    <img className={`${style['img']} lazy`}
                          onClickCapture={(e) => that.onImgClick(photoId, e)}
                          src={picThumbnailUrlPrefix + photoId}/>
                 </span>
@@ -181,12 +202,11 @@ class PhotosShow extends Component<Props, State> {
         let name = "";
         let description = "";
         if (this.state.selectedPhotoId) {
-            name = this.props.data.filter(value => {
+            let item=this.props.data.filter(value => {
                 return value.photoId === this.state.selectedPhotoId;
-            })[0].name;
-            description = this.props.data.filter(value => {
-                return value.photoId === this.state.selectedPhotoId;
-            })[0].description;
+            })[0]
+            name = item.name;
+            description =item.description;
         }
         let options={
             index: this.props.data.findIndex((value, index) => {
@@ -203,55 +223,58 @@ class PhotosShow extends Component<Props, State> {
         });
         let FormItem = Form.Item;
         return (
-            <div>
-                <Modal destroyOnClose onOk={this.onEditSubmit} visible={this.state.editVisible}
-                       onCancel={this.onEditCancel}>
-                    <Form>
-                        <Form.Item label={"编辑图片名称"}>
-                            {getFieldDecorator("photoName",{
-                                initialValue: name
-                            })(
-                                <Input type={'text'}/>
-                            )}
-                        </Form.Item>
-                        <Form.Item label={"编辑图片描述"}>
-                            {getFieldDecorator("photoDescription",{
-                                initialValue:description
-                            })(
-                                <Input type={'text'}/>
-                            )}
-                        </Form.Item>
-                        <Form.Item label={"是否公开"}>
-                            {getFieldDecorator("isPublic",{
-                                initialValue: "isPrivate"
-                            })(
-                                <Radio.Group>
-                                    <Radio value={"isPublic"}>公开</Radio>
-                                    <Radio value={"isPrivate"}>私密</Radio>
-                                </Radio.Group>
-                            )}
-                        </Form.Item>
-                        <FormItem label={'修改标签'}>
-                            {this.state.tags.map((value, index) => {
-                                return <Tag key={index + ""} closable
-                                            onClose={() => this.onTagClose(value)}>{value}</Tag>;
-                            })}{this.state.tagInputShow ? <React.Fragment><Input className={style['tag-input']} autoFocus
-                                                                                 ref={this.tagInput}/>
-                              <Button onClick={this.onTagInputEnter}>确定</Button>
-                          </React.Fragment> :
-                          <Tag onClick={this.onPlusTagClick}><Icon type={'plus'}/> </Tag>}
-                        </FormItem>
-                    </Form>
-                </Modal>
-                <Row gutter={32}>
-                    {this.props.data ? <React.Fragment>
-                        {this.props.data.map((value, index) => {
-                            return Item(index, value.photoId)
-                        })}
-                    </React.Fragment> : <CustomSpin/>}
-                </Row>
-                <PhotoSwipe items={items} options={options} isOpen={this.state.photoSwipeOpen} onClose={this.onCancelPhotoswipe}/>
-            </div>
+          <React.Fragment>
+              <Modal destroyOnClose onOk={this.onEditSubmit} visible={this.state.editVisible}
+                     onCancel={this.onEditCancel}>
+                  <Form>
+                      <Form.Item label={"编辑图片名称"}>
+                          {getFieldDecorator("photoName", {
+                              initialValue: name
+                          })(
+                            <Input type={'text'}/>
+                          )}
+                      </Form.Item>
+                      <Form.Item label={"编辑图片描述"}>
+                          {getFieldDecorator("photoDescription", {
+                              initialValue: description
+                          })(
+                            <Input type={'text'}/>
+                          )}
+                      </Form.Item>
+                      <Form.Item label={"是否公开"}>
+                          {getFieldDecorator("isPublic", {
+                              initialValue: "isPrivate"
+                          })(
+                            <Radio.Group>
+                                <Radio value={"isPublic"}>公开</Radio>
+                                <Radio value={"isPrivate"}>私密</Radio>
+                            </Radio.Group>
+                          )}
+                      </Form.Item>
+                      <FormItem label={'修改标签'}>
+                          {this.state.tags.map((value, index) => {
+                              return <Tag key={index + ""} closable
+                                          onClose={() => this.onTagClose(value)}>{value}</Tag>;
+                          })}{this.state.tagInputShow ? <React.Fragment><Input className={style['tag-input']} autoFocus
+                                                                               ref={this.tagInput}/>
+                            <Button onClick={this.onTagInputEnter}>确定</Button>
+                        </React.Fragment> :
+                        <Tag onClick={this.onPlusTagClick}><Icon type={'plus'}/> </Tag>}
+                      </FormItem>
+                  </Form>
+              </Modal>
+                  <Row gutter={32} className={style['root-row']} onScroll={this.onScroll} >
+                      {this.props.data.length !== 0 ? <React.Fragment>
+                          {this.props.data.map((value, index) => {
+                              return Item(index, value.photoId)
+                          })}
+                      </React.Fragment> : <Col span={24} className={style['no-photo']}>
+                          暂无结果
+                      </Col>}
+                  </Row>
+              <PhotoSwipe items={items} options={options} isOpen={this.state.photoSwipeOpen}
+                          onClose={this.onCancelPhotoswipe}/>
+          </React.Fragment>
         );
     }
 }

@@ -86,10 +86,17 @@ class AlbumListItem extends Component<Props,State> {
         //this.setState({showPhotoList: true})
     }
     onDownloadClick=()=>{
-        // let formData = new FormData();
-        // formData.append("albumId", this.props.id+"");
-        // Axios.post("/api/album/download",formData)
-        this.form.current.submit();
+        let formData = new FormData();
+        formData.append("albumId", this.props.id+"");
+        Axios.post("/api/album/download",formData,{
+            responseType: "blob"
+        }).then(value => {
+            let blob = new Blob([value.data]);
+            let link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.setAttribute("download", `${this.props.title} || "相册"}.zip`);
+            link.click();
+        })
     }
     render() {
         const MenuItem = Menu.Item;
@@ -158,9 +165,6 @@ class AlbumListItem extends Component<Props,State> {
                       </FormItem> : <CustomSpin/>}
                   </Form>
               </Modal>
-              <form ref={this.form} action={'/api/album/download'} method={'post'} style={{display: "none"}} target={'_blank'} >
-                  <input name={'albumId'} value={this.props.id}/>
-              </form>
           </div>
         );
     }

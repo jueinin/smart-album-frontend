@@ -23,10 +23,10 @@ import RetrievePassword from "./pages/retrievePassword/retrievePassword";
 import Search from "./pages/search/search";
 import SearchWrapper from "./pages/search/searchWrapper";
 import BackendRoute from "./pages/backend/backendRoute";
-
 export const mockPath = "http://120.79.239.103:8080/mock/16/mockapi";
 export const picUrlPrefix = "/api/photo/show?photoId=";
-export const picThumbnailUrlPrefix="/api/photo/showThumbnail?photoId="
+export const picThumbnailUrlPrefix = "/api/photo/showThumbnail?photoId=";
+                                                                                                 //弄清楚冒泡捕获  还有那些狗屎高度
 Axios.interceptors.response.use(value => {
     return value;
 },(err:any)=>{

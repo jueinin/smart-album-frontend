@@ -9,7 +9,8 @@ interface State {
     show: boolean;
     count: number;
 }
-class Test extends Component<RouteComponentProps,State> {
+
+class Test extends Component<RouteComponentProps<{id?:string}>,State> {
     constructor(props:any) {
         super(props);
         this.state={show: false, count : 0}
@@ -21,7 +22,8 @@ class Test extends Component<RouteComponentProps,State> {
         console.log(e.currentTarget.files);
     }
     componentDidMount(): void {
-        setInterval(throttle(()=>this.countup(10),1000),10)
+        //setInterval(throttle(()=>this.countup(10),1000),10)
+        console.log(this.props.match.params.id)
     }
     
     render() {

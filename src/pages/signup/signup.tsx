@@ -6,6 +6,14 @@ import {Link, RouteComponentProps} from "react-router-dom";
 import Axios from "axios";
 import Navbar from "../../components/navbar/navbar";
 import NavbarLink from "../../components/navbar/navbarLink/navbarLink";
+import {
+    emailField, emailOption,
+    passwordField,
+    passwordOption, rePasswordField,
+    rePasswordOption,
+    usernameField,
+    usernameOption
+} from "../../tools/fieldsValidate";
 interface Props extends FormComponentProps , RouteComponentProps {
 
 }
@@ -13,14 +21,6 @@ export const elseError=()=>{
     notification.info({message: "因不可抗力,注册失败了"});
 }
 class Signup extends Component<Props,{}> {
-    compareFirstPassword=(rules:any,value:any,callback:any)=>{
-        //console.log(value+this.props.form.getFieldValue("password"))
-        if (value && value !== this.props.form.getFieldValue("password")) {
-            callback("两次输入密码不一致!")
-            return;
-        }
-        callback();
-    }
     usernameVlidate=(rules:any,value:string,callback:any)=>{
         if (value.includes("@")) {
             callback("用户名不能有@")
@@ -83,48 +83,26 @@ class Signup extends Component<Props,{}> {
                   <Row className={style.form}>
                       <Form className={style["inner-form"]} layout={"vertical"} onSubmit={this.registry}>
                           <FormItem label={"用户名"}>
-                              {getFieldDecorator('username', {
-                                  rules: [{
-                                      required: true, message: '请输入用户名3-20个字符', min: 3, max: 20
-                                  }, {
-                                      validator: this.usernameVlidate
-                                  }],
-                              })(
-                                <Input prefix={<Icon type={'user'}/>}/>
+                              {getFieldDecorator('username', usernameOption())(
+                                usernameField()
                               )}
                           </FormItem>
                           <FormItem label={'password'}>
                               {
-                                  getFieldDecorator('password', {
-                                      rules: [{
-                                          required: true, message: "密码至少8位", type: "string", min: 8, max: 20
-                                      }]
-                                  })(
-                                    <Input type={'password'} prefix={<Icon type="lock"/>}/>
+                                  getFieldDecorator('password', passwordOption())(
+                                    passwordField()
                                   )
                               }
                           </FormItem>
-                          <FormItem label={'repassword'}>
-                              {getFieldDecorator("repassword", {
-                                  rules: [
-                                      {
-                                          required: true, message: "请输入确认密码", type: "string"
-                                      },
-                                      {
-                                          validator: this.compareFirstPassword
-                                      }
-                                  ]
-                              })(
-                                <Input type={'password'} prefix={<Icon type="lock"/>}/>
+                          <FormItem
+                            label={'repassword'}>{/*那个repasswordoption函数有种mobx的感觉  只要password值变化了 所有依赖于password字段的decorator都会重新跑一遍*/}
+                              {getFieldDecorator("repassword", rePasswordOption(this.props.form.getFieldValue('password')))(
+                                rePasswordField()
                               )}
                           </FormItem>
                           <FormItem label={'email'}>
-                              {getFieldDecorator("email", {
-                                  rules: [{
-                                      required: true, type: "email", message: "邮箱格式错误哦"
-                                  }]
-                              })(
-                                <Input type={'email'}/>
+                              {getFieldDecorator("email", emailOption())(
+                                emailField()
                               )}
                           </FormItem>
                           <FormItem>

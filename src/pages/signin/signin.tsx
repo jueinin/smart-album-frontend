@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {Component, FormEvent} from 'react';
 import style from './signin.module.css';
 import {Button, Form, Icon, Input, message, notification} from "antd";
 import {Link, RouteComponentProps} from "react-router-dom";
@@ -17,7 +17,8 @@ class SignIn extends Component<Props,{}> {
         this.passwod = React.createRef();
     }
 
-    signin=()=>{
+    signin=(e:FormEvent)=>{
+        e.preventDefault();
         // @ts-ignore
         Axios.post("/api/user/login",{
             username: this.username.current ? this.username.current.input.value : "",
@@ -47,7 +48,7 @@ class SignIn extends Component<Props,{}> {
             <div>
                 <div className={style.body}>
                     <div className={style.form}>
-                        <Form className={style["inner-form"]}>
+                        <Form className={style["inner-form"]} onSubmit={this.signin}>
                             <FormItem label={'用户名'}>
                                 <Input ref={this.username} prefix={<Icon type={'user'}/>}/>
                             </FormItem>
@@ -55,7 +56,7 @@ class SignIn extends Component<Props,{}> {
                                 <Input ref={this.passwod} type={"password"} prefix={<Icon type={'lock'}/>}/>
                             </FormItem>
                             <FormItem>
-                                <Button type={"primary"} block onClick={this.signin}>登录</Button>
+                                <Button htmlType={'submit'} type={"primary"} block>登录</Button>
                             </FormItem>
                             <div className={style["form-bottom"]}>
                                 <Link style={{float:'left'}} to={"/signup"}>立即注册</Link>

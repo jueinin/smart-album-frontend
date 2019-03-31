@@ -14,6 +14,7 @@ export interface PhotoProperties {
   tags: string[];
   originalTime: string;
 }
+
 class PhotoListMobx {
   @observable photoList: PhotoProperties[]=[];
   
@@ -46,20 +47,25 @@ class PhotoListMobx {
   }
   
   @action
-  getAlbumPhotos(albumId: number) {
-    Axios.get("/api/album/getAlbumPhotos",{
+  getAlbumPhotos(albumId: number,page?:number) {
+    Axios.get("/api/album/getAlbumPhotos"+page?`/${page}`:"",{
       params:{
         albumId
       }
     }).then(value => {
-      this.photoList = value.data;
+      // page ? this.photoList = [...this.photoList, ...value.data] : this.photoList = value.data;
+      console.log(this.photoList)
     })
   }
   
   @action
   updatePhotos(location: string, albumId?: number) {
     if (location.toLowerCase().startsWith("/albumlist/")) {
-      this.getAlbumPhotos(albumId);
+      if (!albumId) {
+        this.getAllPhotos();//什么路径该更新什么 傻傻分不清
+      } else {
+        this.getAlbumPhotos(albumId);
+      }
     } else {
       this.getAllPhotos();
     }
