@@ -1,4 +1,4 @@
-import React, {Component, FormEvent} from 'react';
+import React, {Component, DragEventHandler, FormEvent} from 'react';
 import {
     Button,
     Col,
@@ -40,6 +40,7 @@ import SearchComponent from './search/search';
 import CustomNavLink from "../../components/navbar/customNavLink/customNavLink";
 import {photoListMobx, PhotoProperties} from "../../mobx/photoListMobx";
 import {elseError} from "../signup/signup";
+import {throttle} from "../../tools/toolFun";
 interface Props extends FormComponentProps,RouteComponentProps{
     albumList: AlbumProperties[];
     userInfo: UserProperties;
@@ -51,7 +52,7 @@ interface State {
     uploadFiles: UploadFile[];
     uploadMultipleVisible: boolean;
     createAlbumVisible: boolean;
-    uploadMultipleFiles: UploadFile[];
+    uploadMultipleFiles: File[];
     uploadProgress: number;
     tags: string[];
     tagInputShow: boolean;
@@ -59,6 +60,8 @@ interface State {
 @observer
 class AlbumList extends Component<Props,State> {
     tagInput: React.RefObject<Input> = React.createRef();
+  fileInput: React.RefObject<HTMLInputElement> = React.createRef();
+  dragDiv: React.RefObject<HTMLDivElement> = React.createRef();
     constructor(props:any) {
         super(props);
         this.state={uploadModalVisible: false, uploadFileNames: [], uploadFiles: undefined, uploadMultipleVisible: false,
@@ -157,11 +160,17 @@ class AlbumList extends Component<Props,State> {
         if (this.state.uploadMultipleFiles.length === 0) {
             return;
         }
+      if (!this.state.uploadMultipleFiles.every(value => {
+        return value.type.startsWith("image/");
+      })) {
+        message.error("请确认上传文件类型全部为图片")
+        return;
+      }
         this.setState({uploadUploading:true});
         let formData = new FormData();
         let multiAlbumId = this.props.form.getFieldValue("multiAlbumId");
         this.state.uploadMultipleFiles.forEach((value, index) => {
-            formData.append("files", value.originFileObj);
+            formData.append("files", value);
         });
         formData.set("albumId", multiAlbumId);
         Axios.post("/api/photo/uploads", formData,{
@@ -210,9 +219,6 @@ class AlbumList extends Component<Props,State> {
     onSearch=(value:any,e:any)=>{
         this.props.history.push("/albumlist/search?keyword=" + value);
     }
-    onMultiChange = (info:UploadChangeParam) => {
-        this.setState({uploadMultipleFiles:info.fileList})
-    };
     onTagClose = (value: string,e) => {
         e.preventDefault();
         console.log(value);
@@ -232,7 +238,45 @@ class AlbumList extends Component<Props,State> {
         }
         this.setState({tags: [...this.state.tags, value], tagInputShow: false})
     }
-    render() {
+    onDragDivClick=()=>{
+      let input = this.fileInput.current;
+      input.click();
+      input.addEventListener("change",()=>{
+        if (input.files.length === 0) {
+          return;
+        }
+        let files = [];
+        for (let i = 0; i < input.files.length; i++) {
+          files.push(input.files.item(i));
+        }
+        this.setState({uploadMultipleFiles:files})
+      })
+    }
+    // @ts-ignore
+  onDragDrop=(e:DragEvent<HTMLDivElement>)=>{
+      e.preventDefault();
+    let files = e.dataTransfer.files;
+    let fileList = [];
+    if (files) {
+      for (let i = 0; i < files.length; i++) {
+        fileList.push(files.item(i));
+      }
+    } else {
+      let items = e.dataTransfer.items;
+      for (let j = 0; j < items.length; j++) {
+        fileList.push(items.item(j).getAsFile());
+      }
+    }
+    this.setState({uploadMultipleFiles: fileList})
+    }
+    onPreventDefault=(e:any)=>{
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    componentDidMount(): void {
+    }
+  
+  render() {
         const Search = Input.Search;
         const SubMenu = Menu.SubMenu;
         const MenuItem = Menu.Item;
@@ -255,174 +299,173 @@ class AlbumList extends Component<Props,State> {
             let temp = parseInt(usedSpace.substring(0, usedSpace.length - 2));
             progress = temp / storeSpace;
         }
-        return (
-          <div>
-              <Modal destroyOnClose footer={false} visible={this.state.uploadModalVisible}
-                     onOk={this.onUploadModalClose}
-                     onCancel={this.onUploadModalClose}>
-                  <div>
-                      <Form>
-                          <FormItem label={"图片名称"}>
-                              {getFieldDecorator("photoName", {
-                                  //
-                              })(<Input placeholder={"请输入图片名称"}/>)}
-                          </FormItem>
-                          <FormItem label={"图片描述"}>
-                              {getFieldDecorator("photoDescription", {})(<Input placeholder={'请输入图片描述'}/>)}
-                          </FormItem>
-                          <FormItem label={'是否公开'}>
-                              {getFieldDecorator("isPublic", {initialValue: "isPrivate"})(<Radio.Group>
-                                  <Radio value={'isPublic'}>公开</Radio>
-                                  <Radio value={'isPrivate'}>私密</Radio>
-                              </Radio.Group>)}
-                          </FormItem>
-                          <FormItem label={"拖动图片上传"}>
-                              <Dragger showUploadList={false} onChange={this.onDraggerChange} accept={"image/*"}
-                                       customRequest={() => {
-                                       }}>
-                                  <p>点击或者拖动文件到这里即可上传</p>
-                              </Dragger>
-                          </FormItem>
-                          <div>
-                              {this.state.uploadFileNames.map((value, index) => {
-                                  return <p key={index}>{value}</p>;
-                              })}
-                          </div>
-                          <FormItem label={'添加标签'}>
-                              {this.state.tags.map((value, index) => {
-                                  return <Tag key={value} closable onClose={(e) => this.onTagClose(value,e)}>{value}</Tag>
-                              })}{this.state.tagInputShow ? <React.Fragment><Input className={style['tag-input']}
-                                                                                   ref={this.tagInput}/>
-                                                                <Button onClick={this.onTagInputEnter}>确定</Button>
-                              </React.Fragment> :
-                            <Tag><Icon type={'plus'} onClick={this.onPlusTagClick}/> </Tag>}
-                          </FormItem>
-                          <FormItem label={"选择相册"}>
-                              {getFieldDecorator("albumId", {
-                                  initialValue: this.props.albumList.length === 0 ? null : this.props.albumList[0].albumId
-                              })(
-                                <Select>
-                                    {this.props.albumList ? this.props.albumList.map((value, index) => {
-                                        return <Select.Option key={index + ""}
-                                                              value={value.albumId}>{value.name}</Select.Option>;
-                                    }) : <CustomSpin/>}
-                                </Select>
-                              )}
-                          </FormItem>
-                          <FormItem className={style["upload-modal-submit"]}>
-                              <Button htmlType={"submit"} type={"primary"} disabled={this.state.uploadUploading}
-                                      loading={this.state.uploadUploading} onClick={this.onUploadSubmit}>提交</Button>
-                          </FormItem>
-                      </Form>
-                  </div>
-              </Modal>
-              <Modal destroyOnClose visible={this.state.uploadMultipleVisible} footer={false}
-                     onCancel={this.onUploadMultipleClose}>
-                  <Form onSubmit={(e) => this.onMultipleSubmit(e)}>
-                      <FormItem label={"选择相册"}>
-                          {getFieldDecorator("multiAlbumId", {
-                              initialValue: this.props.albumList.length === 0 ? null : this.props.albumList[0].albumId
-                          })(
-                            <Select style={{width: "100%"}}>
-                                {this.props.albumList ? this.props.albumList.map((value, index) => {
-                                    return <Select.Option key={index + ""}
-                                                          value={value.albumId}>{value.name}</Select.Option>;
-                                }) : <CustomSpin/>}
-                            </Select>
-                          )}
-                      </FormItem>
-                      <Dragger accept={"image/*"} showUploadList={false} multiple onChange={this.onMultiChange}
-                               beforeUpload={() => false}>
-                          <p></p>
-                          <p>点击或者拖动批量上传</p>
-                          <p></p>
-                      </Dragger>
-                      {this.state.uploadMultipleFiles ? `你选择了${this.state.uploadMultipleFiles.length}张图` : ""}
-                      <div style={{textAlign: "center"}}>
-                          <Progress type={"circle"} percent={this.state.uploadProgress}
-                                    style={{display: this.state.uploadUploading ? "inline-block" : "none"}}/>
-                      </div>
-                      <FormItem style={{textAlign: "right"}}>
-                          <Button htmlType={'submit'} disabled={this.state.uploadUploading}
-                                  loading={this.state.uploadUploading}>批量上传</Button>
-                      </FormItem>
-                  </Form>
-              </Modal>
-              <Modal destroyOnClose onCancel={this.onCreateAlbumCancel} onOk={this.onCreateAlbumSubmit}
-                     visible={this.state.createAlbumVisible}>
-                  <Form>
-                      <FormItem label={"相册名称"}>
-                          {getFieldDecorator("albumName", {})(
-                            <Input type={'text'}/>
-                          )}
-                      </FormItem>
-                      <FormItem label={"相册描述"}>
-                          {getFieldDecorator("albumDescription", {})(
-                            <Input type={'text'}/>
-                          )}
-                      </FormItem>
-                  </Form>
-              </Modal>
-              <div className={style.body}>
-                  <Navbar>
-                      <Col span={6} offset={4} className={style["search-wrapper"]}>
-                          <div style={{width: "100%"}}>
-                              <Search enterButton size={"large"} className={style["search-input"]}
-                                      placeholder={"请输入关键字查询"} onSearch={this.onSearch}/>
-                          </div>
-                      </Col>
-                      <Col span={3} offset={1} className={style["nav-buttons"]}>
-                          <Button onClick={this.onCreateAlbumOpen}>
-                              <Icon type="plus"/>创建
-                          </Button>
-                          <Button style={{marginLeft: 30}} onClick={this.onUploadClick}>
-                              <Icon type="upload"/>上传
-                          </Button>
-                          <Button style={{marginLeft: 30}} onClick={this.onMultipleUploadClick}>
-                              <Icon type="upload"/>批量上传
-                          </Button>
-                      </Col>
-                      <NavbarAvatar signature={signature} avatar={avatar} nickname={nickname}{...this.props}/>
-                  </Navbar>
-                  <Row className={style["bottom-content"]}>
-                      <Col span={2} className={style.height100}>
-                          <Menu defaultSelectedKeys={['allFiles']} className={style['menu']}>
-                              <MenuItem key={'allPics'}>
-                                  <CustomNavLink exact to={'/albumList'}>全部图片</CustomNavLink>
-                              </MenuItem>
-                              <MenuItem key={'albumlist'}>
-                                  <CustomNavLink exact to={'/albumList/albums'}>我的相册</CustomNavLink>
-                              </MenuItem>
-                              <MenuItem key={'share'}>
-                                  <CustomNavLink to={'/albumList/share'}>我的分享</CustomNavLink>
-                              </MenuItem>
-                              <MenuItem key={'rubbish'}>
-                                  <CustomNavLink to={'/albumList/recycleBin'}>回收站</CustomNavLink>
-                              </MenuItem>
-                          </Menu>
-                          <div className={style["left-nav-bottom"]}>
-                              <SizeProgress progress={ progress} height={10}/>
-                              {usedSpace}/{storeSpace}GB
-                          </div>
-                      </Col>
-                      <Col span={20} offset={1} className={`${style.height100} ${style['right-bottom']}`}>
-                          <div>
-                              <Switch>
-                                  <Route path={'/albumList/search'} component={SearchComponent}/>
-                                  <Route exact path={'/albumList'} component={PhotoShowWrapper}/>
-                              
-                                  <Route path={'/albumList/albums'}
-                                         render={() => <AlbumList1 data={albumListMobx.albumList}/>}/>
-                                  <Route path={'/albumList/share'} component={Share}/>
-                                  <Route path={'/albumList/recycleBin'} component={RecycleBin}/>
-                                  <Route path={'/albumlist/:id'} component={PhotoShowWrapper}/>
-                              </Switch>
-                          </div>
-                      </Col>
-                  </Row>
+      return (
+        <div>
+          <Modal destroyOnClose footer={false} visible={this.state.uploadModalVisible}
+                 onOk={this.onUploadModalClose}
+                 onCancel={this.onUploadModalClose}>
+            <div>
+              <Form>
+                <FormItem label={"图片名称"}>
+                  {getFieldDecorator("photoName", {
+                    //
+                  })(<Input placeholder={"请输入图片名称"}/>)}
+                </FormItem>
+                <FormItem label={"图片描述"}>
+                  {getFieldDecorator("photoDescription", {})(<Input placeholder={'请输入图片描述'}/>)}
+                </FormItem>
+                <FormItem label={'是否公开'}>
+                  {getFieldDecorator("isPublic", {initialValue: "isPrivate"})(<Radio.Group>
+                    <Radio value={'isPublic'}>公开</Radio>
+                    <Radio value={'isPrivate'}>私密</Radio>
+                  </Radio.Group>)}
+                </FormItem>
+                <FormItem label={"拖动图片上传"}>
+                  <Dragger showUploadList={false} onChange={this.onDraggerChange} accept={"image/*"}
+                           customRequest={() => {
+                           }}>
+                    <p>点击或者拖动文件到这里即可上传</p>
+                  </Dragger>
+                </FormItem>
+                <div>
+                  {this.state.uploadFileNames.map((value, index) => {
+                    return <p key={index}>{value}</p>;
+                  })}
+                </div>
+                <FormItem label={'添加标签'}>
+                  {this.state.tags.map((value, index) => {
+                    return <Tag key={value} closable onClose={(e) => this.onTagClose(value, e)}>{value}</Tag>
+                  })}{this.state.tagInputShow ? <React.Fragment><Input className={style['tag-input']}
+                                                                       ref={this.tagInput}/>
+                    <Button onClick={this.onTagInputEnter}>确定</Button>
+                  </React.Fragment> :
+                  <Tag><Icon type={'plus'} onClick={this.onPlusTagClick}/> </Tag>}
+                </FormItem>
+                <FormItem label={"选择相册"}>
+                  {getFieldDecorator("albumId", {
+                    initialValue: this.props.albumList.length === 0 ? null : this.props.albumList[0].albumId
+                  })(
+                    <Select>
+                      {this.props.albumList ? this.props.albumList.map((value, index) => {
+                        return <Select.Option key={index + ""}
+                                              value={value.albumId}>{value.name}</Select.Option>;
+                      }) : <CustomSpin/>}
+                    </Select>
+                  )}
+                </FormItem>
+                <FormItem className={style["upload-modal-submit"]}>
+                  <Button htmlType={"submit"} type={"primary"} disabled={this.state.uploadUploading}
+                          loading={this.state.uploadUploading} onClick={this.onUploadSubmit}>提交</Button>
+                </FormItem>
+              </Form>
+            </div>
+          </Modal>
+          <Modal destroyOnClose visible={this.state.uploadMultipleVisible} footer={false}
+                 onCancel={this.onUploadMultipleClose}>
+            <Form onSubmit={(e) => this.onMultipleSubmit(e)}>
+              <FormItem label={"选择相册"}>
+                {getFieldDecorator("multiAlbumId", {
+                  initialValue: this.props.albumList.length === 0 ? null : this.props.albumList[0].albumId
+                })(
+                  <Select style={{width: "100%"}}>
+                    {this.props.albumList ? this.props.albumList.map((value, index) => {
+                      return <Select.Option key={index + ""}
+                                            value={value.albumId}>{value.name}</Select.Option>;
+                    }) : <CustomSpin/>}
+                  </Select>
+                )}
+              </FormItem>
+              <div className={style['drag-div']} ref={this.dragDiv} onClick={this.onDragDivClick} onDrop={this.onDragDrop} onDragEnter={this.onPreventDefault}
+              onDragOver={this.onPreventDefault} onDragLeave={this.onPreventDefault}>
+                点击或者拖动上传
               </div>
+              <input type={'file'} ref={this.fileInput} multiple accept={'image/*'} style={{display:"none"}}/>
+              {this.state.uploadMultipleFiles ? `你选择了${this.state.uploadMultipleFiles.length}张图` : ""}
+              <div style={{textAlign: "center"}}>
+                <Progress type={"circle"} percent={this.state.uploadProgress}
+                          style={{display: this.state.uploadUploading ? "inline-block" : "none"}}/>
+              </div>
+              <FormItem style={{textAlign: "right"}}>
+                <Button htmlType={'submit'} disabled={this.state.uploadUploading}
+                        loading={this.state.uploadUploading}>批量上传</Button>
+              </FormItem>
+            </Form>
+          </Modal>
+          <Modal destroyOnClose onCancel={this.onCreateAlbumCancel} onOk={this.onCreateAlbumSubmit}
+                 visible={this.state.createAlbumVisible}>
+            <Form>
+              <FormItem label={"相册名称"}>
+                {getFieldDecorator("albumName", {})(
+                  <Input type={'text'}/>
+                )}
+              </FormItem>
+              <FormItem label={"相册描述"}>
+                {getFieldDecorator("albumDescription", {})(
+                  <Input type={'text'}/>
+                )}
+              </FormItem>
+            </Form>
+          </Modal>
+          <div className={style.body}>
+            <Navbar>
+              <Col span={6} offset={4} className={style["search-wrapper"]}>
+                <div style={{width: "100%"}}>
+                  <Search enterButton size={"large"} className={style["search-input"]}
+                          placeholder={"请输入关键字查询"} onSearch={this.onSearch}/>
+                </div>
+              </Col>
+              <Col span={3} offset={1} className={style["nav-buttons"]}>
+                <Button onClick={this.onCreateAlbumOpen}>
+                  <Icon type="plus"/>创建
+                </Button>
+                <Button style={{marginLeft: 30}} onClick={this.onUploadClick}>
+                  <Icon type="upload"/>上传
+                </Button>
+                <Button style={{marginLeft: 30}} onClick={this.onMultipleUploadClick}>
+                  <Icon type="upload"/>批量上传
+                </Button>
+              </Col>
+              <NavbarAvatar signature={signature} avatar={avatar} nickname={nickname}{...this.props}/>
+            </Navbar>
+            <Row className={style["bottom-content"]}>
+              <Col span={2} className={style.height100}>
+                <Menu defaultSelectedKeys={['allFiles']} className={style['menu']}>
+                  <MenuItem key={'allPics'}>
+                    <CustomNavLink exact to={'/albumList'}>全部图片</CustomNavLink>
+                  </MenuItem>
+                  <MenuItem key={'albumlist'}>
+                    <CustomNavLink exact to={'/albumList/albums'}>我的相册</CustomNavLink>
+                  </MenuItem>
+                  <MenuItem key={'share'}>
+                    <CustomNavLink to={'/albumList/share'}>我的分享</CustomNavLink>
+                  </MenuItem>
+                  <MenuItem key={'rubbish'}>
+                    <CustomNavLink to={'/albumList/recycleBin'}>回收站</CustomNavLink>
+                  </MenuItem>
+                </Menu>
+                <div className={style["left-nav-bottom"]}>
+                  <SizeProgress progress={progress} height={10}/>
+                  {usedSpace}/{storeSpace}GB
+                </div>
+              </Col>
+              <Col span={20} offset={1} className={`${style.height100} ${style['right-bottom']}`}>
+                <div>
+                  <Switch>
+                    <Route path={'/albumList/search'} component={SearchComponent}/>
+                    <Route exact path={'/albumList'} component={PhotoShowWrapper}/>
+                
+                    <Route path={'/albumList/albums'}
+                           render={() => <AlbumList1 data={albumListMobx.albumList}/>}/>
+                    <Route path={'/albumList/share'} component={Share}/>
+                    <Route path={'/albumList/recycleBin'} component={RecycleBin}/>
+                    <Route path={'/albumlist/:id'} component={PhotoShowWrapper}/>
+                  </Switch>
+                </div>
+              </Col>
+            </Row>
           </div>
-        );
+        </div>
+      );
     }
 }
 

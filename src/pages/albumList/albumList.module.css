@@ -66,3 +66,15 @@
 .tag-input {
     width: 44px;
 }
+.drag-div {
+    width: 100%;
+    border: 2px dotted darkgrey;
+    display: flex;
+    cursor: pointer;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 15px;
+}
+.drag-div:hover {
+    border: 2px dotted deepskyblue;
+}
