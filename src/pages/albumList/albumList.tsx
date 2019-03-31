@@ -29,7 +29,7 @@ import {FormComponentProps} from "antd/lib/form";
 import Axios from "axios";
 import PhotosShow from "./phototsShow/photosShow";
 import CustomSpin from "../../components/CustomSpin/CustomSpin";
-import PhotoShowWrapper from "./phototsShow/photoShowWrapper";
+import PhotoShowWrapper, {getPhotoData} from "./phototsShow/photoShowWrapper";
 import {albumListMobx, AlbumProperties} from "../../mobx/albumListMobx";
 import {observer} from "mobx-react";
 import Navbar from "../../components/navbar/navbar";
@@ -41,10 +41,12 @@ import CustomNavLink from "../../components/navbar/customNavLink/customNavLink";
 import {photoListMobx, PhotoProperties} from "../../mobx/photoListMobx";
 import {elseError} from "../signup/signup";
 import Test from "../Test/test";
+import {PhotoPageType} from "../../mobx/PhotoPageTypeMobx";
 
 interface Props extends FormComponentProps,RouteComponentProps{
     albumList: AlbumProperties[];
     userInfo: UserProperties;
+  type: PhotoPageType;
 }
 interface State {
     uploadModalVisible: boolean;
@@ -130,7 +132,8 @@ class AlbumList extends Component<Props,State> {
                     message: "上传成功"
                 });
                 this.setState({uploadModalVisible: false, uploadUploading: false})
-                albumListMobx.getAlbumList();
+                //getPhotoData(this.props)
+              albumListMobx.getAlbumList();
             }
         }).catch(err=>{
             let msg = err.response.data.message;
@@ -177,14 +180,14 @@ class AlbumList extends Component<Props,State> {
         Axios.post("/api/photo/uploads", formData,{
             onUploadProgress:this.onMultiUploadProgress
         }).then(value => {
-            if (value.data.successCount !== this.state.uploadMultipleFiles.length) {
+            if (value.data.successCount === this.state.uploadMultipleFiles.length) {//
                 notification.info({message: "上传失败"});
                 this.setState({uploadUploading: false})
             } else {
               notification.success({message: "上传成功"})
               this.setState({uploadUploading: false, uploadMultipleVisible: false})
               albumListMobx.getAlbumList();
-              photoListMobx.updatePhotos(this.props.location.pathname);
+              getPhotoData(this.props)
               userInfoMobx.getUserInfo();
             }
         }).catch(err=>{

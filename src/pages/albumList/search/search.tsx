@@ -3,6 +3,7 @@ import PhotosShow from "../phototsShow/photosShow";
 import {photoListMobx, PhotoProperties} from "../../../mobx/photoListMobx";
 import {RouteComponentProps} from "react-router";
 import {observer} from "mobx-react";
+import {photoPageTypeMobx} from "../../../mobx/PhotoPageTypeMobx";
 
 interface Props extends RouteComponentProps<{id:string}>{
 }
@@ -24,7 +25,7 @@ class Search extends Component<Props,State> {
   
   render() {
     return <div>
-      <PhotosShow data={photoListMobx.photoList} {...this.props}/>
+      <PhotosShow type={photoPageTypeMobx.type} data={photoListMobx.photoPageList}  {...this.props}/>
     </div>;
   }
 }

@@ -9,29 +9,33 @@ import {PhotoPageType, photoPageTypeMobx} from "../../../mobx/PhotoPageTypeMobx"
 interface Props extends RouteComponentProps<{ id?: string}>{
   type:PhotoPageType
 }
+
+export let getPhotoData = (propsWithType: Props,page?:number,callback?:any) => {
+  if (propsWithType.type === "allPhotos") {
+    photoListMobx.getAllPhotos(page);
+    photoPageTypeMobx.setPhotoPageType("allPhotos");
+  } else if (propsWithType.type === "albumPhotos") {
+    let id = parseInt(propsWithType.match.params.id);
+    photoListMobx.getAlbumPhotos(id);
+    photoPageTypeMobx.setPhotoPageType("albumPhotos");
+  } else if (propsWithType.type === "searchPhotos") {
+    let keyword = queryString.parse(propsWithType.location.search.substring(1)).keyword as string;
+    photoListMobx.getGlobalSearchPhotos(keyword);
+    photoPageTypeMobx.setPhotoPageType("searchPhotos");
+  }
+  if (callback) {
+    callback();
+  }
+};
 @observer
 class PhotoShowWrapper extends Component<Props,{}> {
-  getData=(props:Props)=>{
-    if (props.type === "allPhotos") {
-      photoListMobx.getAllPhotos();
-      photoPageTypeMobx.setPhotoPageType("allPhotos");
-    }else if (props.type === "albumPhotos") {
-      let id = parseInt(props.match.params.id);
-      console.log(props);
-      photoListMobx.getAlbumPhotos(id);
-      photoPageTypeMobx.setPhotoPageType("albumPhotos");
-    }else if (props.type === "searchPhotos") {
-      let keyword = queryString.parse(props.location.search.substring(1)).keyword as string;
-      photoListMobx.getGlobalSearchPhotos(keyword);
-      photoPageTypeMobx.setPhotoPageType("searchPhotos");
-    }
-  }
+  
   componentDidMount(): void {
     console.log(this.props.match.params.id);
-    this.getData(this.props);
+    getPhotoData(this.props);
   }
   componentWillReceiveProps(nextProps:Props, nextContext: any): void {
-    this.getData(nextProps);
+    getPhotoData(nextProps);
   }
   componentWillUnmount(): void {
     photoListMobx.photoList = [];
@@ -39,7 +43,7 @@ class PhotoShowWrapper extends Component<Props,{}> {
   
   render() {
     return (
-      <PhotosShow data={photoListMobx.photoList} {...this.props}/>
+      <PhotosShow data={photoListMobx.photoPageList} {...this.props} type={photoPageTypeMobx.type}/>
     );
   }
 }

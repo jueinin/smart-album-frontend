@@ -14,63 +14,113 @@ export interface PhotoProperties {
   tags: string[];
   originalTime: string;
 }
-
+export interface PhotoPageProperties {
+  pages: number;
+  photos: PhotoProperties[];
+}
 class PhotoListMobx {
   @observable photoList: PhotoProperties[]=[];
+  @observable photoPageList: PhotoPageProperties = {pages:1, photos: []};
   
   @action
-  getScopeSearchPhotos(keyword: string) {
-    Axios.get("/api/photo/personalSearch",{
-      params:{
-        keyword
-      }
-    }).then(value1 => {
-      this.photoList = value1.data;
-    })
+  getScopeSearchPhotos(keyword: string,page?:number) {
+    if (!page) {
+      Axios.get("/api/photo/personalSearch", {
+        params: {
+          keyword, page: 1
+        }
+      }).then(value1 => {
+        this.photoPageList = value1.data;
+      });
+    } else {
+      Axios.get("/api/photo/personalSearch",{
+        params:{
+          keyword,
+          page
+        }
+      }).then(value1 => {
+        this.photoPageList = {
+          pages: value1.data.pages,
+          photos: [...this.photoPageList.photos, ...value1.data.photos]
+        }
+      })
+    }
   }
   
   @action
-  getGlobalSearchPhotos(keyword:string) {
-    Axios.get("/api/photo/globalSearch",{
-      params:{
-        keyword
-      }
-    }).then(value1 => {
-      this.photoList = value1.data;
-    })
+  getGlobalSearchPhotos(keyword:string,page?:number) {
+    if (!page) {
+      Axios.get("/api/photo/globalSearch", {
+        params: {
+          keyword, page: 1
+        }
+      }).then(value1 => {
+        this.photoPageList = value1.data;
+      });
+    } else {
+      Axios.get("/api/photo/globalSearch",{
+        params:{
+          keyword,
+          page
+        }
+      }).then(value1 => {
+        this.photoPageList = {
+          pages: value1.data.pages,
+          photos: [...this.photoPageList.photos, ...value1.data.photos]
+        }
+      })
+    }
   }
+  
   @action
-  getAllPhotos(){
-    Axios.get(`/api/photo/getPhotos`).then(value => {
-      this.photoList = value.data;
-    })
+  getAllPhotos(page?: number) {
+    if (!page) {
+      Axios.get(`/api/photo/getPhotos`, {
+        params: {
+          page: 1
+        }
+      }).then(value => {
+        this.photoPageList = value.data;
+      });
+    } else {
+      Axios.get(`/api/photo/getPhotos`,{
+        params:{
+          page
+        }
+      }).then(value => {
+        this.photoPageList = {
+          pages: value.data.pages,
+          photos: [...this.photoPageList.photos, ...value.data.photos]
+        }
+      })
+    }
   }
   
   @action
   getAlbumPhotos(albumId: number,page?:number) {
-    Axios.get("/api/album/getAlbumPhotos"+page?`/${page}`:"",{
-      params:{
-        albumId
-      }
-    }).then(value => {
-      // page ? this.photoList = [...this.photoList, ...value.data] : this.photoList = value.data;
-      console.log(this.photoList)
-    })
-  }
-  
-  @action
-  updatePhotos(location: string, albumId?: number) {
-    if (location.toLowerCase().startsWith("/albumlist/")) {
-      if (!albumId) {
-        this.getAllPhotos();//什么路径该更新什么 傻傻分不清
-      } else {
-        this.getAlbumPhotos(albumId);
-      }
+    let path = "/api/album/getAlbumPhotos";
+    if (!page) {
+      Axios.get(path, {
+        params: {
+          albumId
+        }
+      }).then(value => {
+        this.photoPageList = value.data;
+      });
     } else {
-      this.getAllPhotos();
+      Axios.get(path,{
+        params:{
+          albumId,
+          page
+        }
+      }).then(value => {
+        this.photoPageList = {
+          pages: value.data.pages,
+          photos: [...this.photoPageList.photos, ...value.data.photos]
+        }
+      })
     }
   }
-  
 }
 
 let photoListMobx = new PhotoListMobx();

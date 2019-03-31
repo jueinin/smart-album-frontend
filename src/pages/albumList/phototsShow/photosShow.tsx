@@ -21,18 +21,21 @@ import {
 import {Link} from "react-router-dom";
 import style from './photosShow.module.css';
 import {FormComponentProps} from "antd/lib/form";
-import {photoListMobx, PhotoProperties} from "../../../mobx/photoListMobx";
+import {photoListMobx, PhotoPageProperties, PhotoProperties} from "../../../mobx/photoListMobx";
 import { picThumbnailUrlPrefix, picUrlPrefix} from "../../../index";
 import {observer} from "mobx-react";
 // @ts-ignore
 import {PhotoSwipe} from 'react-photoswipe';
 import 'react-photoswipe/lib/photoswipe.css';
+import {getPhotoData} from "./photoShowWrapper";
+import {PhotoPageType} from "../../../mobx/PhotoPageTypeMobx";
 interface RouteParams{
     id?: string;
 }
 interface Props extends RouteComponentProps<RouteParams>,FormComponentProps{
-    data: PhotoProperties[];
+    data: PhotoPageProperties;
     searchShowPage?: boolean;
+    type:PhotoPageType
 }
 interface State {
     editVisible: boolean;
@@ -45,6 +48,7 @@ interface State {
 class PhotosShow extends Component<Props, State> {
     tagInput: React.RefObject<Input> = React.createRef();
     scrollPending: boolean = false;//是否处于底部ajax状态
+    currentPage: number = 1;//瀑布流
     constructor(props:any) {
         super(props);
         this.state={editVisible: false, selectedPhotoId: undefined, photoSwipeOpen: false,tags:[], tagInputShow: false}
@@ -81,7 +85,7 @@ class PhotosShow extends Component<Props, State> {
             if (value.data.status === "ok") {
                 message.success("编辑成功!");
                 this.setState({editVisible: false})
-                photoListMobx.updatePhotos(this.props.location.pathname, parseInt(this.props.match.params.id));
+                getPhotoData(this.props)
             } else {
                 message.error("编辑失败,请检查");
             }
@@ -93,7 +97,7 @@ class PhotosShow extends Component<Props, State> {
         this.setState({editVisible: true, selectedPhotoId: index},()=>{
             this.setState({
                 tags:
-                this.props.data.filter(value => {
+                this.props.data.photos.filter(value => {
                     return value.photoId === this.state.selectedPhotoId;
                 })[0].tags})
         })
@@ -115,7 +119,7 @@ class PhotosShow extends Component<Props, State> {
             if (value.data.status === "ok") {
                 message.success("删除成功");
                 //添加更新
-                photoListMobx.updatePhotos(this.props.location.pathname, parseInt(this.props.match.params.id));
+                getPhotoData(this.props)
             } else {
                 message.error("删除失败");
             }
@@ -135,7 +139,7 @@ class PhotosShow extends Component<Props, State> {
             let blob = new Blob([value.data]);
             let link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
-            let photoIndex = this.props.data.findIndex(value1 => {
+            let photoIndex = this.props.data.photos.findIndex(value1 => {
                 return photoId === value1.photoId;
             });
             let photo = this.props.data[photoIndex];
@@ -165,12 +169,19 @@ class PhotosShow extends Component<Props, State> {
         // console.log(ref.scrollHeight);
         // console.log(ref.scrollTop);
         if (ref.scrollHeight - ref.scrollTop < 2 * ref.clientHeight &&!this.scrollPending) {
+            if (this.currentPage > photoListMobx.photoPageList.pages && photoListMobx.photoPageList.pages > 1) {
+                message.info('已经到底了哦');
+                return;
+            }
+            this.currentPage++;
+            console.log(`现在是第${this.currentPage}页`)
             //z这里应该只触发一次
             this.scrollPending = true;
-            console.log('ajax');
+            //start ajax  end set false
             setTimeout(() => {
                 this.scrollPending = false;
             }, 2000);
+            getPhotoData(this.props, this.currentPage);
         }
     }
     render() {
@@ -202,18 +213,18 @@ class PhotosShow extends Component<Props, State> {
         let name = "";
         let description = "";
         if (this.state.selectedPhotoId) {
-            let item=this.props.data.filter(value => {
+            let item = this.props.data.photos.filter(value => {
                 return value.photoId === this.state.selectedPhotoId;
-            })[0]
+            })[0];
             name = item.name;
             description =item.description;
         }
         let options={
-            index: this.props.data.findIndex((value, index) => {
+            index: this.props.data.photos.findIndex((value, index) => {
                 return value.photoId===this.state.selectedPhotoId
             })
         };
-        let items=this.props.data.map((value, index) => {
+        let items=this.props.data.photos.map((value, index) => {
             return {
                 src: picUrlPrefix + value.photoId,
                 w: value.width,
@@ -264,12 +275,12 @@ class PhotosShow extends Component<Props, State> {
                   </Form>
               </Modal>
                   <Row gutter={32} className={style['root-row']} onScroll={this.onScroll} >
-                      {this.props.data.length !== 0 ? <React.Fragment>
-                          {this.props.data.map((value, index) => {
+                      {this.props.data.photos.length !== 0 ? <React.Fragment>
+                          {this.props.data.photos.map((value, index) => {
                               return Item(index, value.photoId)
                           })}
                       </React.Fragment> : <Col span={24} className={style['no-photo']}>
-                          暂无结果
+                          <CustomSpin/>
                       </Col>}
                   </Row>
               <PhotoSwipe items={items} options={options} isOpen={this.state.photoSwipeOpen}

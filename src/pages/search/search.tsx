@@ -7,6 +7,7 @@ import PhotosShow from "../albumList/phototsShow/photosShow";
 import {photoListMobx, PhotoProperties} from "../../mobx/photoListMobx";
 import querystring from 'query-string';
 import {observer} from "mobx-react";
+import {PhotoPageType, photoPageTypeMobx} from "../../mobx/PhotoPageTypeMobx";
 interface Props extends RouteComponentProps<{id:string}>{
   photos: PhotoProperties[];
 }
@@ -31,7 +32,7 @@ class Search extends Component<Props,State> {
           <NavbarLink title={'个人主页'} path={'/albumlist'}/>
         </Navbar>
         <div className={style['body']}>
-        {this.props.photos&&this.props.photos.length?<PhotosShow searchShowPage={true} data={photoListMobx.photoList}{...this.props}/>:"没有搜索结果"}
+        {this.props.photos&&this.props.photos.length?<PhotosShow type={photoPageTypeMobx.type} searchShowPage={true} data={photoListMobx.photoPageList}{...this.props}/>:"没有搜索结果"}
         </div>
       </div>
     );
