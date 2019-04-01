@@ -49,3 +49,9 @@
     top: 0;
     left: 0;
 }
+.top-button {
+    margin: 10px 0;
+}
+.top-button :global(.ant-btn) {
+    margin-right: 15px;
+}

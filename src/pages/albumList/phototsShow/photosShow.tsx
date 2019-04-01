@@ -30,8 +30,16 @@ import 'react-photoswipe/lib/photoswipe.css';
 import {getPhotoData} from "./photoShowWrapper";
 import {PhotoPageType} from "../../../mobx/PhotoPageTypeMobx";
 import {albumListMobx} from "../../../mobx/albumListMobx";
+import {observable} from "mobx";
 interface RouteParams{
     id?: string;
+}
+interface photo extends PhotoProperties{
+    checked?: boolean;
+}
+interface PhotosWithCheck{
+    pages: number;
+    photos: photo[];
 }
 interface Props extends RouteComponentProps<RouteParams>,FormComponentProps{
     data: PhotoPageProperties;
@@ -47,7 +55,13 @@ interface State {
     photoSwipeOpen: boolean;
     tags: string[];
     tagInputShow: boolean;
+    data:PhotosWithCheck;
 }
+class SelectedCheckbox {
+    @observable checkedList: number[] = [];//photoId
+}
+
+let selectedCheckbox = new SelectedCheckbox();
 @observer
 class PhotosShow extends Component<Props, State> {
     tagInput: React.RefObject<Input> = React.createRef();
@@ -55,14 +69,19 @@ class PhotosShow extends Component<Props, State> {
     currentPage: number = 1;//瀑布流
     constructor(props:any) {
         super(props);
+        let data: PhotosWithCheck = this.props.data;
+        data.photos.forEach(value => {
+            value.checked = false;
+        })
         this.state={editVisible: false, selectedPhotoId: undefined, photoSwipeOpen: false,tags:[], tagInputShow: false,
-            selectedPhotosId: [], editing: false, checkALl: false}
+            selectedPhotosId: [], editing: false, checkALl: false,data:data}
     }
     componentWillReceiveProps(nextProps: Readonly<Props>, nextContext: any): void {
-    
-    }
-    componentDidMount(): void {
-    
+        let data: PhotosWithCheck = nextProps.data;
+        data.photos.forEach(value => {
+            value.checked = false;
+        })
+        this.setState({data})
     }
     
     onEditSubmit = () => {
@@ -171,9 +190,6 @@ class PhotosShow extends Component<Props, State> {
     }
     onScroll=(e:any)=>{
         let ref: HTMLDivElement = e.currentTarget;
-        console.log(ref.clientHeight);
-        console.log(ref.scrollHeight);
-        console.log(ref.scrollTop);
         if (ref.scrollHeight - ref.scrollTop < 2.5 * ref.clientHeight &&!this.scrollPending) {
             if (this.currentPage > photoListMobx.photoPageList.pages && photoListMobx.photoPageList.pages > 1) {
                 message.info('已经到底了哦');
@@ -192,14 +208,34 @@ class PhotosShow extends Component<Props, State> {
         }
     }
     onMultipleEditClick=()=>{
-        this.setState({editing: true})
+        this.setState({editing: !this.state.editing},()=>{
+            if (this.state.selectedPhotosId.length !== 0) {
+                this.setState({selectedPhotosId: []})
+            }
+        })
     }
     onCheckboxChange=(e,photoId:number)=>{
         let checked: boolean = e.target.checked;
         if (checked) {
-            this.setState({selectedPhotosId: [...this.state.selectedPhotosId, photoId]});
+            this.setState({selectedPhotosId: [...this.state.selectedPhotosId, photoId],data:{
+                    pages: this.props.data.pages,
+                    photos:this.state.data.photos.map(value => {
+                        if (value.photoId === photoId) {
+                            value.checked = true;
+                        }
+                        return value;
+                    })
+                }});
         } else {
-            this.setState({selectedPhotosId: this.state.selectedPhotosId.filter(value => value !== photoId)})
+            this.setState({selectedPhotosId: this.state.selectedPhotosId.filter(value => value !== photoId),data:{
+                    pages: this.props.data.pages,
+                    photos:this.state.data.photos.map(value => {
+                        if (value.photoId === photoId) {
+                            value.checked = false;
+                        }
+                        return value;
+                    })
+                }})
         }
     }
     onMultipleDeleteClick = () => {
@@ -216,6 +252,7 @@ class PhotosShow extends Component<Props, State> {
             if (value.data.status === "ok") {
                 message.success("删除成功");
                 //添加更新
+                console.log(this.props.type);
                 getPhotoData(this.props)
                 albumListMobx.getAlbumList();
             } else {
@@ -226,13 +263,32 @@ class PhotosShow extends Component<Props, State> {
         });
     };
     onSelectAll=()=>{
-        this.setState({checkALl: true,selectedPhotosId:this.props.data.photos.map(value => value.photoId)})
+        if (this.state.selectedPhotosId.length === this.props.data.photos.length) {
+            this.setState({
+                selectedPhotosId: [], data: {
+                    pages: this.state.data.pages,
+                    photos: this.state.data.photos.map(value => {
+                        value.checked = false;
+                        return value;
+                    })
+                }
+            });
+        } else {
+            this.setState({selectedPhotosId:this.props.data.photos.map(value => value.photoId), data: {
+                    pages:this.state.data.pages,
+                    photos: this.state.data.photos.map(value => {
+                        value.checked = true;
+                        return value;
+                    })
+                }
+            });
+        }
     }
     render() {
         const that = this;
         const MenuItem = Menu.Item;
         const getFieldDecorator = this.props.form.getFieldDecorator;
-        let Item = function (index: number, photoId: number) {
+        let Item = function (index: number, photoId: number,checked:boolean) {
             let overlay = <Menu>
                 <MenuItem onClick={() => that.onEditClick(photoId)}>编辑</MenuItem>
                 <MenuItem>
@@ -248,7 +304,7 @@ class PhotosShow extends Component<Props, State> {
                     <img className={`${style['img']}`}
                          onClickCapture={(e) => that.onImgClick(photoId, e)}
                          src={picThumbnailUrlPrefix + photoId}/>
-                    {that.state.editing ? <Checkbox defaultChecked={that.state.checkALl}  onChange={(e) => that.onCheckboxChange(e, photoId)}
+                    {that.state.editing ? <Checkbox checked={checked}  onChange={(e) => that.onCheckboxChange(e, photoId)}
                                                     className={style['checkbox']}/> : null}
                 </span>
                 {that.props.searchShowPage ? null : <Dropdown overlay={overlay}>
@@ -323,17 +379,19 @@ class PhotosShow extends Component<Props, State> {
                       </FormItem>
                   </Form>
               </Modal>
-              <Row>
-                  <Col offset={18} span={4}>
-                      <Button htmlType={'button'} onClick={this.onMultipleEditClick}>编辑</Button>
-                      <Button htmlType={'button'} onClick={this.onMultipleDeleteClick}>多选删除</Button>
-                      <Button htmlType={'button'} onClick={this.onSelectAll}>全选</Button>
+              {this.props.searchShowPage?null:<Row>
+                  <Col span={24} className={style['top-button']}>
+                      <Button size={"large"} htmlType={'button'} onClick={this.onMultipleEditClick}>编辑</Button>
+                      {this.state.editing ? <React.Fragment>
+                          <Button size={"large"} htmlType={'button'} onClick={this.onMultipleDeleteClick}>多选删除</Button>
+                          < Button size={"large"} htmlType={'button'} onClick={this.onSelectAll}>全选</Button>
+                      </React.Fragment>:null}
                   </Col>
-              </Row>
+              </Row>}
               <Row gutter={32} className={style['root-row']} onScroll={this.onScroll}>
                   {this.props.data.photos.length !== 0 ? <React.Fragment>
-                      {this.props.data.photos.map((value, index) => {
-                          return Item(index, value.photoId)
+                      {this.state.data.photos.map((value, index) => {
+                          return Item(index, value.photoId, value.checked)
                       })}
                   </React.Fragment> : <Col span={24} className={style['no-photo']}>
                       这里没有图片呢

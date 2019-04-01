@@ -36,7 +36,7 @@ Axios.interceptors.response.use(value => {
                 cancelText: "",
                 okText:"好的",
                 onOk:()=>{
-                    window.location.href = "/";
+                    window.location.href = "/signin";
                 }
             })
         return Promise.reject(err.response);

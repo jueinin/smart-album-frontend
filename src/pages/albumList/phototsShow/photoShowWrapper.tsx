@@ -39,6 +39,7 @@ class PhotoShowWrapper extends Component<Props,{}> {
     getPhotoData(this.props);
   }
   componentWillReceiveProps(nextProps:Props, nextContext: any): void {
+    
     getPhotoData(nextProps);
   }
   // componentWillUnmount(): void {

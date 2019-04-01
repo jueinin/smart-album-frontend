@@ -222,12 +222,16 @@ class AlbumList extends Component<Props,State> {
       Axios.post("/api/photo/uploads", formData,{
         onUploadProgress:this.onMultiUploadProgress
       }).then(value => {
-        if (value.data.successCount === this.state.uploadMultipleFiles.length) {//
+        if (value.data.successCount !== this.state.uploadMultipleFiles.length) {//
           notification.info({message: "上传失败"});
           this.setState({uploadUploading: false})
         } else {
-          notification.success({message: "上传成功"})
-          this.setState({uploadUploading: false, uploadMultipleVisible: false})
+          if (value.data.successCount === this.state.uploadMultipleFiles.length) {
+            notification.success({message: "上传成功"});
+          } else {
+            notification.info({message:`阿哦,有${value.data.failedCount}图片上传失败了`});
+          }
+          this.setState({uploadUploading: false, uploadMultipleVisible: false});
           albumListMobx.getAlbumList();
           getPhotoData(this.props)
           userInfoMobx.getUserInfo();
@@ -298,7 +302,7 @@ class AlbumList extends Component<Props,State> {
       })
     }
     // @ts-ignore
-  onDragDrop=(e:DragEvent<HTMLDivElement>)=>{
+    onDragDrop=(e:DragEvent<HTMLDivElement>)=>{
       e.preventDefault();
     let files = e.dataTransfer.files;
     let fileList = [];
@@ -317,8 +321,6 @@ class AlbumList extends Component<Props,State> {
     onPreventDefault=(e:any)=>{
       e.preventDefault();
       e.stopPropagation();
-    }
-    componentDidMount(): void {
     }
   render() {
         const Search = Input.Search;
