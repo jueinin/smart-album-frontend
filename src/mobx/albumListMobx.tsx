@@ -15,10 +15,13 @@ export interface AlbumProperties {
 class AlbumListMobx {
   @observable albumList: AlbumProperties[]=[];
   @action
-  getAlbumList(){
+  getAlbumList(callback?:any){
     Axios.get("/api/album/getAlbumList").then(value => {
       this.albumList = value.data;
     })
+    if (callback) {
+      callback();
+    }
   }
   
   @action

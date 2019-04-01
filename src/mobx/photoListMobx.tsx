@@ -7,7 +7,7 @@ export interface PhotoProperties {
   description: string;
   albumId: number;
   likes: number;
-  isPublic: string;
+  isPublic: number;
   size: number;
   width: number;
   height: number;
@@ -31,7 +31,11 @@ class PhotoListMobx {
         }
       }).then(value1 => {
         this.photoPageList = value1.data;
-      });
+      }).catch(err=>{
+        // if (err.response.status === 404) {
+        //   this.photoPageList=
+        // }
+      })
     } else {
       Axios.get("/api/photo/personalSearch",{
         params:{
@@ -102,7 +106,7 @@ class PhotoListMobx {
     if (!page) {
       Axios.get(path, {
         params: {
-          albumId
+          albumId, page: 1
         }
       }).then(value => {
         this.photoPageList = value.data;

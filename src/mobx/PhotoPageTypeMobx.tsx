@@ -1,6 +1,6 @@
 import {action, observable} from "mobx";
 
-export type PhotoPageType = "allPhotos" | "albumPhotos" | "searchPhotos"; //searchphoto指的是scope search
+export type PhotoPageType = "allPhotos" | "albumPhotos" | "searchPhotos" |"externalSearchPhotos"; //searchphoto指的是scope search
 
 class PhotoPageTypeMobx {
   @observable type: PhotoPageType = undefined;

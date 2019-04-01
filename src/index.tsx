@@ -26,12 +26,12 @@ import BackendRoute from "./pages/backend/backendRoute";
 export const mockPath = "http://120.79.239.103:8080/mock/16/mockapi";
 export const picUrlPrefix = "/api/photo/show?photoId=";
 export const picThumbnailUrlPrefix = "/api/photo/showThumbnail?photoId=";
-                                                                                                 //弄清楚冒泡捕获  还有那些狗屎高度
+                                                                                                 //弄清楚冒泡捕获  还有那些狗屎高度    mobx的异步没有回调可能需要手动在请求里添加回调函数
 Axios.interceptors.response.use(value => {
     return value;
 },(err:any)=>{
     console.log("inmdex",err);
-    if (err.response.status===401) {
+    if (err.response.data.message==='not logged in') {
         Modal.error({title:"您的会话已过期,请重新登录",
                 cancelText: "",
                 okText:"好的",
@@ -39,16 +39,9 @@ Axios.interceptors.response.use(value => {
                     window.location.href = "/";
                 }
             })
-        return;
+        return Promise.reject(err.response);
     }
-    return Promise.reject(err)
-    // Modal.error({title:"您的会话已过期,请重新登录",
-    //     cancelText: "",
-    //     okText:"好的",
-    //     onOk:()=>{
-    //         window.location.href = "/";
-    //     }
-    // })
+    return Promise.reject(err.response)
 })
 ReactDOM.render(
   <div>

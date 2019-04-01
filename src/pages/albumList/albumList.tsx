@@ -42,6 +42,7 @@ import {photoListMobx, PhotoProperties} from "../../mobx/photoListMobx";
 import {elseError} from "../signup/signup";
 import Test from "../Test/test";
 import {PhotoPageType} from "../../mobx/PhotoPageTypeMobx";
+import NavbarLink from "../../components/navbar/navbarLink/navbarLink";
 
 interface Props extends FormComponentProps,RouteComponentProps{
     albumList: AlbumProperties[];
@@ -156,44 +157,85 @@ class AlbumList extends Component<Props,State> {
         let result = ((e.loaded / e.total) * 100).toFixed(2);
         this.setState({uploadProgress: parseFloat(result)})
     }
-    onMultipleSubmit=(e:FormEvent)=>{                //要改  体验不好
-        e.preventDefault();
-        if (!this.state.uploadMultipleFiles) {
-            return;
-        }
-        if (this.state.uploadMultipleFiles.length === 0) {
-            return;
-        }
+    onMultipleSubmitTest=(e:FormEvent)=>{
+      e.preventDefault();
+      if (!this.state.uploadMultipleFiles) {
+        return;
+      }
+      if (this.state.uploadMultipleFiles.length === 0) {
+        return;
+      }
       if (!this.state.uploadMultipleFiles.every(value => {
         return value.type.startsWith("image/");
       })) {
         message.error("请确认上传文件类型全部为图片")
         return;
       }
-        this.setState({uploadUploading:true});
-        let formData = new FormData();
-        let multiAlbumId = this.props.form.getFieldValue("multiAlbumId");
-        this.state.uploadMultipleFiles.forEach((value, index) => {
-            formData.append("files", value);
-        });
+      this.setState({uploadUploading:true});
+      let formData = new FormData();
+      let multiAlbumId = this.props.form.getFieldValue("multiAlbumId");
+      this.state.uploadMultipleFiles.forEach((value, index) => {
+        formData.append("file", value);
         formData.set("albumId", multiAlbumId);
-        Axios.post("/api/photo/uploads", formData,{
-            onUploadProgress:this.onMultiUploadProgress
+        Axios.post("/api/photo/uploadsTest", formData,{
+          onUploadProgress:this.onMultiUploadProgress
         }).then(value => {
-            if (value.data.successCount === this.state.uploadMultipleFiles.length) {//
-                notification.info({message: "上传失败"});
-                this.setState({uploadUploading: false})
-            } else {
-              notification.success({message: "上传成功"})
-              this.setState({uploadUploading: false, uploadMultipleVisible: false})
-              albumListMobx.getAlbumList();
-              getPhotoData(this.props)
-              userInfoMobx.getUserInfo();
-            }
+          console.log(value);
+          // if (value.data.successCount === this.state.uploadMultipleFiles.length) {//
+          //   notification.info({message: "上传失败"});
+          //   this.setState({uploadUploading: false})
+          // } else {
+          //   notification.success({message: "上传成功"})
+          //   this.setState({uploadUploading: false, uploadMultipleVisible: false})
+          //   albumListMobx.getAlbumList();
+          //   getPhotoData(this.props)
+          //   userInfoMobx.getUserInfo();
+          // }
         }).catch(err=>{
-            notification.info({message: "上传失败"});
-            this.setState({uploadUploading: false})
+          notification.info({message: "上传失败"});
+          this.setState({uploadUploading: false})
         })
+      });
+      
+    }
+    onMultipleSubmit=(e:FormEvent)=>{                //要改  体验不好
+      e.preventDefault();
+      if (!this.state.uploadMultipleFiles) {
+        return;
+      }
+      if (this.state.uploadMultipleFiles.length === 0) {
+        return;
+      }
+      if (!this.state.uploadMultipleFiles.every(value => {
+        return value.type.startsWith("image/");
+      })) {
+        message.error("请确认上传文件类型全部为图片")
+        return;
+      }
+      this.setState({uploadUploading:true});
+      let formData = new FormData();
+      let multiAlbumId = this.props.form.getFieldValue("multiAlbumId");
+      this.state.uploadMultipleFiles.forEach((value, index) => {
+        formData.append("files", value);
+      });
+      formData.set("albumId", multiAlbumId);
+      Axios.post("/api/photo/uploads", formData,{
+        onUploadProgress:this.onMultiUploadProgress
+      }).then(value => {
+        if (value.data.successCount === this.state.uploadMultipleFiles.length) {//
+          notification.info({message: "上传失败"});
+          this.setState({uploadUploading: false})
+        } else {
+          notification.success({message: "上传成功"})
+          this.setState({uploadUploading: false, uploadMultipleVisible: false})
+          albumListMobx.getAlbumList();
+          getPhotoData(this.props)
+          userInfoMobx.getUserInfo();
+        }
+      }).catch(err=>{
+        notification.info({message: "上传失败"});
+        this.setState({uploadUploading: false})
+      })
     }
     onCreateAlbumCancel=()=>{
         this.setState({createAlbumVisible: false})
@@ -411,7 +453,8 @@ class AlbumList extends Component<Props,State> {
         </Modal>
         <div className={style.body}>
           <Navbar>
-            <Col span={6} offset={4} className={style["search-wrapper"]}>
+            <NavbarLink title={'首页'} path={'/'}/>
+            <Col span={6} offset={2} className={style["search-wrapper"]}>
               <div style={{width: "100%"}}>
                 <Search enterButton size={"large"} className={style["search-input"]}
                         placeholder={"请输入关键字查询"} onSearch={this.onSearch}/>

@@ -165,12 +165,13 @@ class PhotosShow extends Component<Props, State> {
     }
     onScroll=(e:any)=>{
         let ref: HTMLDivElement = e.currentTarget;
-        // console.log(ref.clientHeight);
-        // console.log(ref.scrollHeight);
-        // console.log(ref.scrollTop);
-        if (ref.scrollHeight - ref.scrollTop < 2 * ref.clientHeight &&!this.scrollPending) {
+        console.log(ref.clientHeight);
+        console.log(ref.scrollHeight);
+        console.log(ref.scrollTop);
+        if (ref.scrollHeight - ref.scrollTop < 2.5 * ref.clientHeight &&!this.scrollPending) {
             if (this.currentPage > photoListMobx.photoPageList.pages && photoListMobx.photoPageList.pages > 1) {
                 message.info('已经到底了哦');
+                this.scrollPending = true;
                 return;
             }
             this.currentPage++;
@@ -180,7 +181,7 @@ class PhotosShow extends Component<Props, State> {
             //start ajax  end set false
             setTimeout(() => {
                 this.scrollPending = false;
-            }, 2000);
+            }, 1000);
             getPhotoData(this.props, this.currentPage);
         }
     }
@@ -212,12 +213,15 @@ class PhotosShow extends Component<Props, State> {
         };
         let name = "";
         let description = "";
+        let isPublic = "isPublic";
         if (this.state.selectedPhotoId) {
             let item = this.props.data.photos.filter(value => {
                 return value.photoId === this.state.selectedPhotoId;
             })[0];
             name = item.name;
             description =item.description;
+            console.log(item.isPublic);
+            isPublic = item.isPublic === 1 ? "isPublic" : "isPrivate";
         }
         let options={
             index: this.props.data.photos.findIndex((value, index) => {
@@ -254,7 +258,7 @@ class PhotosShow extends Component<Props, State> {
                       </Form.Item>
                       <Form.Item label={"是否公开"}>
                           {getFieldDecorator("isPublic", {
-                              initialValue: "isPrivate"
+                              initialValue: isPublic
                           })(
                             <Radio.Group>
                                 <Radio value={"isPublic"}>公开</Radio>
@@ -280,7 +284,7 @@ class PhotosShow extends Component<Props, State> {
                               return Item(index, value.photoId)
                           })}
                       </React.Fragment> : <Col span={24} className={style['no-photo']}>
-                          <CustomSpin/>
+                         这里没有图片呢
                       </Col>}
                   </Row>
               <PhotoSwipe items={items} options={options} isOpen={this.state.photoSwipeOpen}

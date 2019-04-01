@@ -12,7 +12,6 @@ interface Props {
 }
 class NavbarLink extends Component<Props,{}> {
   render() {
-    console.log(this.props.className)
     return (
       <Col span={2} offset={this.props.offset ? this.props.offset : 0}>
         <Link className={`${style.link} ${this.props.className || ""}`}

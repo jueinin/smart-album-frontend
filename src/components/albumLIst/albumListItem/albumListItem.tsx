@@ -1,7 +1,7 @@
-import React, {ChangeEvent, Component} from 'react';
+import React, {ChangeEvent, Component, FormEvent} from 'react';
 import {Link} from "react-router-dom";
 import style from './albumListItem.module.css';
-import {Button, Dropdown, Form, Icon, Input, Menu, message, Modal, Popconfirm, Radio, Tag, Tooltip} from "antd";
+import {Button, Dropdown, Form, Icon, Input, Menu, message, Modal, Popconfirm, Radio, Select, Tag, Tooltip} from "antd";
 import Axios from "axios";
 import {FormComponentProps} from "antd/lib/form";
 import PhotoList from "../../photoList/photoList";
@@ -22,6 +22,7 @@ interface Props extends FormComponentProps{
 }
 interface State {
     editVisible: boolean;
+    mergeVisible: boolean;
     photoListData: PhotoProperties[];
 }
 @observer
@@ -31,7 +32,8 @@ class AlbumListItem extends Component<Props,State> {
         super(props);
         this.state = {                                                                   //那个创建相册 底下不更新问题  到时候mobx解决下
             editVisible: false,
-            photoListData: undefined
+            photoListData: undefined,
+            mergeVisible: false
         };
     }
     onOpenEditModal=()=>{
@@ -98,6 +100,34 @@ class AlbumListItem extends Component<Props,State> {
             link.click();
         })
     }
+    onMergeAlbumsClick=()=> {
+        this.setState({mergeVisible: true})
+        albumListMobx.getAlbumList();
+    }
+    onMergeAlbumsCancel=()=>{
+        this.setState({mergeVisible: false})
+    }
+    onMergeSubmit=(e:FormEvent)=>{
+        e.preventDefault();
+        let selfAlbumId = this.props.id;
+        let moveToAlbumId = this.props.form.getFieldValue("mergeToAlbum");
+        if (!moveToAlbumId) {
+            return;
+        }
+        Axios.get("/api/album/merge",{
+            params:{
+                firstAlbumId:selfAlbumId,
+                secondAlbumId: moveToAlbumId
+            }
+        }).then(value => {
+            if (value.data.status === 'ok') {
+                message.success("合并成功");
+                albumListMobx.getAlbumList();
+            }
+        }).catch(err=>{
+            message.error("合并失败");
+        })
+    }
     render() {
         const MenuItem = Menu.Item;
         const FormItem = Form.Item;
@@ -112,6 +142,7 @@ class AlbumListItem extends Component<Props,State> {
                 </Popconfirm>
             </MenuItem>
             <MenuItem onClick={this.onDownloadClick}>下载相册</MenuItem>
+            <MenuItem onClick={this.onMergeAlbumsClick}>相册合并</MenuItem>
         </Menu>;
         return (
           <div className={this.props.className}>
@@ -164,6 +195,27 @@ class AlbumListItem extends Component<Props,State> {
                           )}
                       </FormItem> : <CustomSpin/>}
                   </Form>
+              </Modal>
+              <Modal destroyOnClose visible={this.state.mergeVisible} onCancel={this.onMergeAlbumsCancel}
+                     footer={false}>
+                  <Form onSubmit={this.onMergeSubmit}>
+                      <Form.Item label={'选择要合并至的相册,合并后此相册会被删除'}>
+                          {
+                              this.props.form.getFieldDecorator("mergeToAlbum")(
+                                <Select>
+                                    {albumListMobx.albumList ? albumListMobx.albumList.filter(value => value.albumId !== this.props.id).map(value1 => {
+                                        return <Select.Option key={value1.albumId + ""}
+                                                              value={value1.albumId}>{value1.name}</Select.Option>;
+                                    }) : null}
+                                </Select>
+                              )
+                          }
+                      </Form.Item>
+                      <div style={{textAlign: "right"}}>
+                          <Button htmlType={'submit'}>确认合并</Button>
+                      </div>
+                  </Form>
+          
               </Modal>
           </div>
         );

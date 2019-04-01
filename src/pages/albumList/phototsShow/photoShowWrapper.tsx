@@ -16,12 +16,16 @@ export let getPhotoData = (propsWithType: Props,page?:number,callback?:any) => {
     photoPageTypeMobx.setPhotoPageType("allPhotos");
   } else if (propsWithType.type === "albumPhotos") {
     let id = parseInt(propsWithType.match.params.id);
-    photoListMobx.getAlbumPhotos(id);
+    photoListMobx.getAlbumPhotos(id,page);
     photoPageTypeMobx.setPhotoPageType("albumPhotos");
   } else if (propsWithType.type === "searchPhotos") {
     let keyword = queryString.parse(propsWithType.location.search.substring(1)).keyword as string;
-    photoListMobx.getGlobalSearchPhotos(keyword);
+    photoListMobx.getScopeSearchPhotos(keyword,page);
     photoPageTypeMobx.setPhotoPageType("searchPhotos");
+  }else if (propsWithType.type === "externalSearchPhotos") {
+    let keyword = queryString.parse(propsWithType.location.search.substring(1)).keyword as string;
+    photoListMobx.getGlobalSearchPhotos(keyword, page);
+    photoPageTypeMobx.setPhotoPageType("externalSearchPhotos");
   }
   if (callback) {
     callback();
@@ -37,9 +41,9 @@ class PhotoShowWrapper extends Component<Props,{}> {
   componentWillReceiveProps(nextProps:Props, nextContext: any): void {
     getPhotoData(nextProps);
   }
-  componentWillUnmount(): void {
-    photoListMobx.photoList = [];
-  }
+  // componentWillUnmount(): void {
+  //   photoListMobx.photoList = [];
+  // }
   
   render() {
     return (
