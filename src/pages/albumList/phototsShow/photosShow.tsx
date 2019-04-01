@@ -29,6 +29,7 @@ import {PhotoSwipe} from 'react-photoswipe';
 import 'react-photoswipe/lib/photoswipe.css';
 import {getPhotoData} from "./photoShowWrapper";
 import {PhotoPageType} from "../../../mobx/PhotoPageTypeMobx";
+import {albumListMobx} from "../../../mobx/albumListMobx";
 interface RouteParams{
     id?: string;
 }
@@ -39,7 +40,10 @@ interface Props extends RouteComponentProps<RouteParams>,FormComponentProps{
 }
 interface State {
     editVisible: boolean;
-    selectedPhotoId: number;
+    selectedPhotoId: number;//编辑选中的photo
+    selectedPhotosId: number[];//多选删除啥的
+    editing: boolean;//正在多选状态
+    checkALl: boolean;
     photoSwipeOpen: boolean;
     tags: string[];
     tagInputShow: boolean;
@@ -51,7 +55,8 @@ class PhotosShow extends Component<Props, State> {
     currentPage: number = 1;//瀑布流
     constructor(props:any) {
         super(props);
-        this.state={editVisible: false, selectedPhotoId: undefined, photoSwipeOpen: false,tags:[], tagInputShow: false}
+        this.state={editVisible: false, selectedPhotoId: undefined, photoSwipeOpen: false,tags:[], tagInputShow: false,
+            selectedPhotosId: [], editing: false, checkALl: false}
     }
     componentWillReceiveProps(nextProps: Readonly<Props>, nextContext: any): void {
     
@@ -120,6 +125,7 @@ class PhotosShow extends Component<Props, State> {
                 message.success("删除成功");
                 //添加更新
                 getPhotoData(this.props)
+                albumListMobx.getAlbumList();
             } else {
                 message.error("删除失败");
             }
@@ -185,6 +191,43 @@ class PhotosShow extends Component<Props, State> {
             getPhotoData(this.props, this.currentPage);
         }
     }
+    onMultipleEditClick=()=>{
+        this.setState({editing: true})
+    }
+    onCheckboxChange=(e,photoId:number)=>{
+        let checked: boolean = e.target.checked;
+        if (checked) {
+            this.setState({selectedPhotosId: [...this.state.selectedPhotosId, photoId]});
+        } else {
+            this.setState({selectedPhotosId: this.state.selectedPhotosId.filter(value => value !== photoId)})
+        }
+    }
+    onMultipleDeleteClick = () => {
+        if (this.state.selectedPhotosId.length === 0) {
+            return;
+        }
+        let arr = [];
+        this.state.selectedPhotosId.forEach(value => {
+            arr.push({
+                photoId: value
+            })
+        })
+        Axios.post("/api/photo/moveToRecycleBin", arr).then(value => {
+            if (value.data.status === "ok") {
+                message.success("删除成功");
+                //添加更新
+                getPhotoData(this.props)
+                albumListMobx.getAlbumList();
+            } else {
+                message.error("删除失败");
+            }
+        }).catch(err => {
+            message.error("网络异常请重试");
+        });
+    };
+    onSelectAll=()=>{
+        this.setState({checkALl: true,selectedPhotosId:this.props.data.photos.map(value => value.photoId)})
+    }
     render() {
         const that = this;
         const MenuItem = Menu.Item;
@@ -201,10 +244,12 @@ class PhotosShow extends Component<Props, State> {
             </Menu>;
     
             return <Col key={photoId + ""} span={4} className={style["img-col"]}>
-                <span>
-                    <img className={`${style['img']} lazy`}
+                <span className={style['img-wrapper']}>
+                    <img className={`${style['img']}`}
                          onClickCapture={(e) => that.onImgClick(photoId, e)}
                          src={picThumbnailUrlPrefix + photoId}/>
+                    {that.state.editing ? <Checkbox defaultChecked={that.state.checkALl}  onChange={(e) => that.onCheckboxChange(e, photoId)}
+                                                    className={style['checkbox']}/> : null}
                 </span>
                 {that.props.searchShowPage ? null : <Dropdown overlay={overlay}>
                     <Link to={'#'} className={style["more-icon"]}><Icon type="more"/></Link>
@@ -278,15 +323,22 @@ class PhotosShow extends Component<Props, State> {
                       </FormItem>
                   </Form>
               </Modal>
-                  <Row gutter={32} className={style['root-row']} onScroll={this.onScroll} >
-                      {this.props.data.photos.length !== 0 ? <React.Fragment>
-                          {this.props.data.photos.map((value, index) => {
-                              return Item(index, value.photoId)
-                          })}
-                      </React.Fragment> : <Col span={24} className={style['no-photo']}>
-                         这里没有图片呢
-                      </Col>}
-                  </Row>
+              <Row>
+                  <Col offset={18} span={4}>
+                      <Button htmlType={'button'} onClick={this.onMultipleEditClick}>编辑</Button>
+                      <Button htmlType={'button'} onClick={this.onMultipleDeleteClick}>多选删除</Button>
+                      <Button htmlType={'button'} onClick={this.onSelectAll}>全选</Button>
+                  </Col>
+              </Row>
+              <Row gutter={32} className={style['root-row']} onScroll={this.onScroll}>
+                  {this.props.data.photos.length !== 0 ? <React.Fragment>
+                      {this.props.data.photos.map((value, index) => {
+                          return Item(index, value.photoId)
+                      })}
+                  </React.Fragment> : <Col span={24} className={style['no-photo']}>
+                      这里没有图片呢
+                  </Col>}
+              </Row>
               <PhotoSwipe items={items} options={options} isOpen={this.state.photoSwipeOpen}
                           onClose={this.onCancelPhotoswipe}/>
           </React.Fragment>

@@ -29,7 +29,7 @@ class SignIn extends Component<Props,{}> {
                 this.props.history.push("/albumlist");
             }
         }).catch(error=>{
-            let msg= error.response.data.message;
+            let msg= error.data.message;
             if (msg === 'username or email does not exist') {
                 message.error("用户名或者邮箱不存在");
             }else if (msg === 'password error') {

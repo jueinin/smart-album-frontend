@@ -29,7 +29,7 @@ class Password extends Component<Props,{}> {
                 }, 2000);
               }
             }).catch(err => {
-              let msg = err.response.data.message;
+              let msg = err.data.message;
               if (msg === 'not logged in') {
                 message.error('未登录');
               }

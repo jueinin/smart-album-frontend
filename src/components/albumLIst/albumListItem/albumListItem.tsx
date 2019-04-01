@@ -69,7 +69,7 @@ class AlbumListItem extends Component<Props,State> {
                 albumListMobx.getAlbumList()
             }
         }).catch(err=>{
-            let msg = err.response.data.message;
+            let msg = err.data.message;
             if (msg === 'forbidden edit') {
                 message.error('禁止编辑默认相册');
             } else {

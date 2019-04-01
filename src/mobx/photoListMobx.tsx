@@ -18,9 +18,10 @@ export interface PhotoPageProperties {
   pages: number;
   photos: PhotoProperties[];
 }
+let defaultPhotoPageList={pages:1, photos: []};
 class PhotoListMobx {
   @observable photoList: PhotoProperties[]=[];
-  @observable photoPageList: PhotoPageProperties = {pages:1, photos: []};
+  @observable photoPageList: PhotoPageProperties = defaultPhotoPageList;
   
   @action
   getScopeSearchPhotos(keyword: string,page?:number) {
@@ -32,9 +33,9 @@ class PhotoListMobx {
       }).then(value1 => {
         this.photoPageList = value1.data;
       }).catch(err=>{
-        // if (err.response.status === 404) {
-        //   this.photoPageList=
-        // }
+        if (err.status === 404) {
+          this.photoPageList = defaultPhotoPageList;
+        }
       })
     } else {
       Axios.get("/api/photo/personalSearch",{
@@ -60,7 +61,11 @@ class PhotoListMobx {
         }
       }).then(value1 => {
         this.photoPageList = value1.data;
-      });
+      }).catch(err=>{
+        if (err.status === 404) {
+          this.photoPageList = defaultPhotoPageList;
+        }
+      })
     } else {
       Axios.get("/api/photo/globalSearch",{
         params:{
@@ -85,7 +90,11 @@ class PhotoListMobx {
         }
       }).then(value => {
         this.photoPageList = value.data;
-      });
+      }).catch(err=>{
+        if (err.status === 404) {
+          this.photoPageList = defaultPhotoPageList;
+        }
+      })
     } else {
       Axios.get(`/api/photo/getPhotos`,{
         params:{
@@ -110,7 +119,11 @@ class PhotoListMobx {
         }
       }).then(value => {
         this.photoPageList = value.data;
-      });
+      }).catch(err=>{
+        if (err.status === 404) {
+          this.photoPageList = defaultPhotoPageList;
+        }
+      })
     } else {
       Axios.get(path,{
         params:{

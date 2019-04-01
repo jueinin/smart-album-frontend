@@ -137,7 +137,7 @@ class AlbumList extends Component<Props,State> {
               albumListMobx.getAlbumList();
             }
         }).catch(err=>{
-            let msg = err.response.data.message;
+            let msg = err.data.message;
             if (msg === 'empty file error') {
                 message.error("空文件");
             }else if (msg === 'file is not an image') {

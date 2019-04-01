@@ -49,7 +49,7 @@ class Signup extends Component<Props,{}> {
                         this.props.history.push("/albumlist");
                     }
                 }).catch(err=>{
-                    let res = err.response.data.message;
+                    let res = err.data.message;
                     if (res === 'username has been registered') {
                         message.error("用户名已经被注册");
                     }else if (res === 'email has been registered') {

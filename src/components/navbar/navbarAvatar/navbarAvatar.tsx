@@ -20,9 +20,9 @@ class NavbarAvatar extends Component<Props,{}> {
     })
   }
   render() {
-    let avatarOverlay=<Menu style={{textAlign:"center"}}>
+    let avatarOverlay=<Menu style={{textAlign:"center",width:"155px"}}>
       <Menu.Item>昵称:&nbsp;{this.props.nickname}</Menu.Item>
-      <Menu.Item>个性签名:&nbsp;{this.props.signature||"还没有个性签名呢"}</Menu.Item>
+      <Menu.Item title={this.props.signature||"还没有个性签名呢"} className={style['signature']}>个性签名:&nbsp;{this.props.signature||"还没有个性签名呢"}</Menu.Item>
       <Menu.Item>
         <Button htmlType={'button'}onClick={this.onLogout}>
           退出登录

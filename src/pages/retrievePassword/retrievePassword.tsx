@@ -34,7 +34,7 @@ class RetrievePassword extends Component<Props,State> {
         this.userId = value.data.userId;
       }
     }).catch(err=>{
-      let msg = err.response.data.message;
+      let msg = err.data.message;
       if (msg === 'sid expired or not exist') {
         message.error("链接过期或不存在");
       } else {
@@ -60,7 +60,7 @@ class RetrievePassword extends Component<Props,State> {
             }, 1000)
           }
         }).catch(err => {
-          let msg = err.response.data.message;
+          let msg = err.data.message;
           if (msg === 'sid expired or not exist') {
             message.error("链接过期或不存在");
           } else {
