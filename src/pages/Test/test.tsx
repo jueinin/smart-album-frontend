@@ -5,31 +5,37 @@ import {RouteComponentProps} from "react-router";
 import {mockPath} from "../../index";
 import Axios from "axios";
 import {throttle} from "../../tools/toolFun";
+import {observable} from "mobx";
+import {observer} from "mobx-react";
 interface State {
     show: boolean;
     count: number;
 }
+class Count {
+    @observable count = 0;
+}
 
+let count = new Count();
+@observer
 class Test extends Component<RouteComponentProps<{id?:string}>,State> {
     constructor(props:any) {
         super(props);
         this.state={show: false, count : 0}
     }
-    countup=(i)=>{
-        this.setState({count: this.state.count+i})
-    }
-    onChange=(e:ChangeEvent<HTMLInputElement>)=>{
-        console.log(e.currentTarget.files);
-    }
     componentDidMount(): void {
-        //setInterval(throttle(()=>this.countup(10),1000),10)
-        console.log(this.props.match.params.id)
+        count.count++;
+    }
+    onCount=()=>{
+        count.count++;
+    }
+    componentWillReceiveProps(nextProps: Readonly<RouteComponentProps<{ id?: string }>>, nextContext: any): void {
+        console.log(count.count)
     }
     
     render() {
         return (
           <div>
-              <input type={'file'} multiple onChange={this.onChange}/>
+              <button onClick={this.onCount}>+++++</button>{count.count}
           </div>
         );
     }

@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
-import {RouteComponentProps} from "react-router";
+import {RouteComponentProps, withRouter} from "react-router";
 import Axios from "axios";
-import CustomSpin from "../../../components/CustomSpin/CustomSpin";
 import {
     Button,
     Checkbox,
@@ -22,15 +21,16 @@ import {Link} from "react-router-dom";
 import style from './photosShow.module.css';
 import {FormComponentProps} from "antd/lib/form";
 import {photoListMobx, PhotoPageProperties, PhotoProperties} from "../../../mobx/photoListMobx";
-import { picThumbnailUrlPrefix, picUrlPrefix} from "../../../index";
+import {picThumbnailUrlPrefix, picUrlPrefix} from "../../../index";
 import {observer} from "mobx-react";
 // @ts-ignore
 import {PhotoSwipe} from 'react-photoswipe';
 import 'react-photoswipe/lib/photoswipe.css';
-import {getPhotoData} from "./photoShowWrapper";
-import {PhotoPageType} from "../../../mobx/PhotoPageTypeMobx";
+import {PhotoPageType, photoPageTypeMobx} from "../../../mobx/PhotoPageTypeMobx";
 import {albumListMobx} from "../../../mobx/albumListMobx";
-import {observable} from "mobx";
+import * as queryString from "querystring";
+import {number} from "prop-types";
+
 interface RouteParams{
     id?: string;
 }
@@ -42,7 +42,6 @@ interface PhotosWithCheck{
     photos: photo[];
 }
 interface Props extends RouteComponentProps<RouteParams>,FormComponentProps{
-    data: PhotoPageProperties;
     searchShowPage?: boolean;
     type:PhotoPageType
 }
@@ -55,13 +54,43 @@ interface State {
     photoSwipeOpen: boolean;
     tags: string[];
     tagInputShow: boolean;
-    data:PhotosWithCheck;
 }
-class SelectedCheckbox {
-    @observable checkedList: number[] = [];//photoId
+export let getPhotoData = (props: Props, page?: number, callback?: any) => {   //设计一个更新函数  让他在这个组件内调用也可以  组件外调用也可以更新
+    if (props.type === "allPhotos") {
+        photoListMobx.getAllPhotos(page);
+        photoPageTypeMobx.setPhotoPageType("allPhotos");
+    } else if (props.type === "albumPhotos") {
+        let id = parseInt(props.match.params.id);
+        photoPageTypeMobx.setPhotoPageType("albumPhotos");
+        photoListMobx.getAlbumPhotos(id, page);
+    } else if (props.type === "searchPhotos") {
+        let keyword = queryString.parse(props.location.search.substring(1)).keyword as string;
+        photoListMobx.getScopeSearchPhotos(keyword, page);
+        photoPageTypeMobx.setPhotoPageType("searchPhotos");
+    } else if (props.type === "externalSearchPhotos") {
+        let keyword = queryString.parse(props.location.search.substring(1)).keyword as string;
+        photoListMobx.getGlobalSearchPhotos(keyword, page);
+        photoPageTypeMobx.setPhotoPageType("externalSearchPhotos");
+    }
+    if (callback) {
+        callback();
+    }
+};
+export let getPhotoDataFromExternal=(props,page?:number)=>{
+    if (photoPageTypeMobx.type === "allPhotos") {
+        photoListMobx.getAllPhotos(page);
+    }else if (photoPageTypeMobx.type === "albumPhotos") {
+        let id = parseInt(props.match.params.id);
+        photoPageTypeMobx.setPhotoPageType("albumPhotos");
+    }else if (photoPageTypeMobx.type === "searchPhotos") {
+        let keyword = queryString.parse(props.location.search.substring(1)).keyword as string;
+        photoListMobx.getScopeSearchPhotos(keyword, page);
+    }else if (photoPageTypeMobx.type === "externalSearchPhotos") {
+        let keyword = queryString.parse(props.location.search.substring(1)).keyword as string;
+        photoListMobx.getGlobalSearchPhotos(keyword, page);
+    }
 }
 
-let selectedCheckbox = new SelectedCheckbox();
 @observer
 class PhotosShow extends Component<Props, State> {
     tagInput: React.RefObject<Input> = React.createRef();
@@ -69,21 +98,30 @@ class PhotosShow extends Component<Props, State> {
     currentPage: number = 1;//瀑布流
     constructor(props:any) {
         super(props);
-        let data: PhotosWithCheck = this.props.data;
+        let data: PhotosWithCheck = photoListMobx.photoPageList;
         data.photos.forEach(value => {
             value.checked = false;
         })
         this.state={editVisible: false, selectedPhotoId: undefined, photoSwipeOpen: false,tags:[], tagInputShow: false,
-            selectedPhotosId: [], editing: false, checkALl: false,data:data}
+            selectedPhotosId: [], editing: false, checkALl: false}
+    }
+    componentWillReact(){
+    
     }
     componentWillReceiveProps(nextProps: Readonly<Props>, nextContext: any): void {
-        let data: PhotosWithCheck = nextProps.data;
-        data.photos.forEach(value => {
-            value.checked = false;
-        })
-        this.setState({data})
+        // photoPageTypeMobx.type = this.props.type;
+        // let data: PhotosWithCheck = photoListMobx.photoPageList;
+        // data.photos.forEach(value => {
+        //     value.checked = false;
+        // })
+        // this.setState({data})
+        getPhotoData(nextProps);
     }
     
+    componentDidMount(): void {
+        //photoPageTypeMobx.type = this.props.type;
+        getPhotoData(this.props);
+    }
     onEditSubmit = () => {
         let photoName = this.props.form.getFieldValue("photoName");
         if (!photoName) {
@@ -121,7 +159,7 @@ class PhotosShow extends Component<Props, State> {
         this.setState({editVisible: true, selectedPhotoId: index},()=>{
             this.setState({
                 tags:
-                this.props.data.photos.filter(value => {
+                photoListMobx.photoPageList.photos.filter(value => {
                     return value.photoId === this.state.selectedPhotoId;
                 })[0].tags})
         })
@@ -164,10 +202,10 @@ class PhotosShow extends Component<Props, State> {
             let blob = new Blob([value.data]);
             let link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
-            let photoIndex = this.props.data.photos.findIndex(value1 => {
+            let photoIndex = photoListMobx.photoPageList.photos.findIndex(value1 => {
                 return photoId === value1.photoId;
             });
-            let photo = this.props.data[photoIndex];
+            let photo = photoListMobx.photoPageList[photoIndex];
             link.setAttribute("download", `${photo.name || "图片"}.jpeg`);
             link.click();
         });
@@ -217,25 +255,21 @@ class PhotosShow extends Component<Props, State> {
     onCheckboxChange=(e,photoId:number)=>{
         let checked: boolean = e.target.checked;
         if (checked) {
-            this.setState({selectedPhotosId: [...this.state.selectedPhotosId, photoId],data:{
-                    pages: this.props.data.pages,
-                    photos:this.state.data.photos.map(value => {
-                        if (value.photoId === photoId) {
-                            value.checked = true;
-                        }
-                        return value;
-                    })
-                }});
+            this.setState({selectedPhotosId: [...this.state.selectedPhotosId, photoId]});
+            photoListMobx.photoWithChecked.photos=photoListMobx.photoWithChecked.photos.map(value => {
+                if (value.photoId === photoId) {
+                    value.checked = true;
+                }
+                return value;
+            })
         } else {
-            this.setState({selectedPhotosId: this.state.selectedPhotosId.filter(value => value !== photoId),data:{
-                    pages: this.props.data.pages,
-                    photos:this.state.data.photos.map(value => {
-                        if (value.photoId === photoId) {
-                            value.checked = false;
-                        }
-                        return value;
-                    })
-                }})
+            this.setState({selectedPhotosId: this.state.selectedPhotosId.filter(value => value !== photoId)});
+            photoListMobx.photoWithChecked.photos=photoListMobx.photoWithChecked.photos.map(value => {
+                if (value.photoId === photoId) {
+                    value.checked = false;
+                }
+                return value;
+            })
         }
     }
     onMultipleDeleteClick = () => {
@@ -252,7 +286,6 @@ class PhotosShow extends Component<Props, State> {
             if (value.data.status === "ok") {
                 message.success("删除成功");
                 //添加更新
-                console.log(this.props.type);
                 getPhotoData(this.props)
                 albumListMobx.getAlbumList();
             } else {
@@ -263,25 +296,22 @@ class PhotosShow extends Component<Props, State> {
         });
     };
     onSelectAll=()=>{
-        if (this.state.selectedPhotosId.length === this.props.data.photos.length) {
+        if (this.state.selectedPhotosId.length === photoListMobx.photoPageList.photos.length) {
             this.setState({
-                selectedPhotosId: [], data: {
-                    pages: this.state.data.pages,
-                    photos: this.state.data.photos.map(value => {
-                        value.checked = false;
-                        return value;
-                    })
-                }
+                selectedPhotosId: []
             });
+            photoListMobx.photoWithChecked.photos=photoListMobx.photoWithChecked.photos.map(value => {
+                value.checked = false;
+                return value;
+            })
         } else {
-            this.setState({selectedPhotosId:this.props.data.photos.map(value => value.photoId), data: {
-                    pages:this.state.data.pages,
-                    photos: this.state.data.photos.map(value => {
-                        value.checked = true;
-                        return value;
-                    })
-                }
+            this.setState({
+                selectedPhotosId: photoListMobx.photoPageList.photos.map(value => value.photoId)
             });
+            photoListMobx.photoWithChecked.photos=photoListMobx.photoWithChecked.photos.map(value => {
+                value.checked = true;
+                return value;
+            })
         }
     }
     render() {
@@ -316,7 +346,7 @@ class PhotosShow extends Component<Props, State> {
         let description = "";
         let isPublic = "isPublic";
         if (this.state.selectedPhotoId) {
-            let item = this.props.data.photos.filter(value => {
+            let item = photoListMobx.photoWithChecked.photos.filter(value => {
                 return value.photoId === this.state.selectedPhotoId;
             })[0];
             name = item.name;
@@ -325,11 +355,11 @@ class PhotosShow extends Component<Props, State> {
             isPublic = item.isPublic === 1 ? "isPublic" : "isPrivate";
         }
         let options={
-            index: this.props.data.photos.findIndex((value, index) => {
+            index: photoListMobx.photoWithChecked.photos.findIndex((value, index) => {
                 return value.photoId===this.state.selectedPhotoId
             })
         };
-        let items=this.props.data.photos.map((value, index) => {
+        let items=photoListMobx.photoWithChecked.photos.map((value, index) => {
             return {
                 src: picUrlPrefix + value.photoId,
                 w: value.width,
@@ -384,13 +414,13 @@ class PhotosShow extends Component<Props, State> {
                       <Button size={"large"} htmlType={'button'} onClick={this.onMultipleEditClick}>编辑</Button>
                       {this.state.editing ? <React.Fragment>
                           <Button size={"large"} htmlType={'button'} onClick={this.onMultipleDeleteClick}>多选删除</Button>
-                          < Button size={"large"} htmlType={'button'} onClick={this.onSelectAll}>全选</Button>
+                          <Button size={"large"} htmlType={'button'} onClick={this.onSelectAll}>全选</Button>
                       </React.Fragment>:null}
                   </Col>
               </Row>}
               <Row gutter={32} className={style['root-row']} onScroll={this.onScroll}>
-                  {this.props.data.photos.length !== 0 ? <React.Fragment>
-                      {this.state.data.photos.map((value, index) => {
+                  {photoListMobx.photoWithChecked.photos.length !== 0 ? <React.Fragment>
+                      {photoListMobx.photoWithChecked.photos.map((value, index) => {
                           return Item(index, value.photoId, value.checked)
                       })}
                   </React.Fragment> : <Col span={24} className={style['no-photo']}>
@@ -404,4 +434,4 @@ class PhotosShow extends Component<Props, State> {
     }
 }
 
-export default Form.create()(PhotosShow);
+export default withRouter(Form.create()(PhotosShow));

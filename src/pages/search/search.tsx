@@ -28,7 +28,7 @@ class Search extends Component<Props,State> {
           <NavbarLink title={'个人主页'} path={'/albumlist'}/>
         </Navbar>
         <div className={style['body']}>
-        {this.props.photos&&this.props.photos.photos.length?<PhotosShow type={photoPageTypeMobx.type} searchShowPage={true} data={this.props.photos}{...this.props}/>:"没有搜索结果"}
+        {this.props.photos&&this.props.photos.photos.length?<PhotosShow type={photoPageTypeMobx.type} searchShowPage={true}{...this.props} />:"没有搜索结果"}
         </div>
       </div>
     );

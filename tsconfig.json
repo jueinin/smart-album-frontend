@@ -11,7 +11,7 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "strictNullChecks": false,
-
+    "sourceMap": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
@@ -21,6 +21,7 @@
     "resolveJsonModule": true,
     "isolatedModules": false,
     "noEmit": true,
+    "outDir": "./dist",
     "jsx": "preserve"
   },
   "include": [

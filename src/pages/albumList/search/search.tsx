@@ -25,7 +25,7 @@ class Search extends Component<Props,State> {
   
   render() {
     return <div>
-      <PhotosShow type={photoPageTypeMobx.type} data={photoListMobx.photoPageList}  {...this.props}/>
+      <PhotosShow type={photoPageTypeMobx.type} {...this.props}/>
     </div>;
   }
 }

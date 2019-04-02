@@ -1,4 +1,4 @@
-import {action, observable} from "mobx";
+import {action, autorun, computed, observable, reaction} from "mobx";
 import Axios from "axios";
 import {mockPath} from "../index";
 export interface PhotoProperties {
@@ -13,7 +13,9 @@ export interface PhotoProperties {
   height: number;
   tags: string[];
   originalTime: string;
+  checked?: boolean;
 }
+
 export interface PhotoPageProperties {
   pages: number;
   photos: PhotoProperties[];
@@ -22,6 +24,26 @@ let defaultPhotoPageList={pages:1, photos: []};
 class PhotoListMobx {
   @observable photoList: PhotoProperties[]=[];
   @observable photoPageList: PhotoPageProperties = defaultPhotoPageList;
+  
+  // @ts-ignore
+  @observable photoWithChecked:PhotoPageProperties={
+    pages: this.photoPageList.pages,
+    photos:this.photoPageList.photos.map(value => {
+      value.checked = false;
+      return value;
+    })
+  }
+  
+  a=autorun(() => {
+    this.photoWithChecked = {
+      pages: this.photoPageList.pages,
+      photos: this.photoPageList.photos.map(value => {
+        value.checked = false;
+        return value;
+      })
+    }
+  })
+  
   
   @action
   getScopeSearchPhotos(keyword: string,page?:number) {

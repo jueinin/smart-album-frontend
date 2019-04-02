@@ -1,53 +1,47 @@
-import React, {Component, DragEventHandler, FormEvent} from 'react';
+import React, {Component, FormEvent} from 'react';
 import {
-    Button,
-    Col,
-    Dropdown,
-    Form,
-    Icon,
-    Input,
-    Menu,
-    message,
-    Modal,
-    notification, Progress,
-    Radio,
-    Row,
-    Select, Tag,
-    Upload
+  Button,
+  Col,
+  Form,
+  Icon,
+  Input,
+  Menu,
+  message,
+  Modal,
+  notification,
+  Progress,
+  Radio,
+  Row,
+  Select,
+  Tag,
+  Upload
 } from "antd";
-import Logo from '../../components/logo/logo';
 import style from './albumList.module.css';
 import SizeProgress from "../../components/sizeProgress/sizeProgress";
-import {Route, RouteComponentProps, Switch} from "react-router";
+import {Route, RouteComponentProps, Switch, withRouter} from "react-router";
 import AlbumList1 from '../../components/albumLIst/albumList';
 import Share from "./share/share";
-import {Link, NavLink} from "react-router-dom";
 import RecycleBin from "./recycleBin/recycleBin";
 import {UploadChangeParam} from "antd/lib/upload";
-import {RcFile, UploadFile} from "antd/lib/upload/interface";
+import {UploadFile} from "antd/lib/upload/interface";
 import {FormComponentProps} from "antd/lib/form";
 import Axios from "axios";
-import PhotosShow from "./phototsShow/photosShow";
+import {getPhotoData, getPhotoDataFromExternal} from "./phototsShow/photosShow";
 import CustomSpin from "../../components/CustomSpin/CustomSpin";
-import PhotoShowWrapper, {getPhotoData} from "./phototsShow/photoShowWrapper";
+import PhotosShow from "./phototsShow/photosShow";
 import {albumListMobx, AlbumProperties} from "../../mobx/albumListMobx";
 import {observer} from "mobx-react";
 import Navbar from "../../components/navbar/navbar";
 import {userInfoMobx, UserProperties} from "../../mobx/userMobx";
 import NavbarAvatar from "../../components/navbar/navbarAvatar/navbarAvatar";
-import {selectDownloadMobx} from "../../mobx/selectDownloadMobx";
-import SearchComponent from './search/search';
 import CustomNavLink from "../../components/navbar/customNavLink/customNavLink";
-import {photoListMobx, PhotoProperties} from "../../mobx/photoListMobx";
 import {elseError} from "../signup/signup";
 import Test from "../Test/test";
 import {PhotoPageType} from "../../mobx/PhotoPageTypeMobx";
 import NavbarLink from "../../components/navbar/navbarLink/navbarLink";
 
 interface Props extends FormComponentProps,RouteComponentProps{
-    albumList: AlbumProperties[];
-    userInfo: UserProperties;
-  type: PhotoPageType;
+
 }
 interface State {
     uploadModalVisible: boolean;
@@ -62,7 +56,7 @@ interface State {
     tagInputShow: boolean;
 }
 @observer
-class AlbumList extends Component<Props,State> {
+class AlbumList extends Component<Props,State> {   //这玩意儿不要type props的
     tagInput: React.RefObject<Input> = React.createRef();
   fileInput: React.RefObject<HTMLInputElement> = React.createRef();
   dragDiv: React.RefObject<HTMLDivElement> = React.createRef();
@@ -72,6 +66,10 @@ class AlbumList extends Component<Props,State> {
             uploadMultipleFiles: undefined, createAlbumVisible: false,uploadUploading:false,uploadProgress:0, tags: [],
             tagInputShow: false}
     }
+  componentDidMount(): void {
+    albumListMobx.getAlbumList();
+    userInfoMobx.getUserInfo();
+  }
     onUploadClick=()=>{
         this.setState({uploadModalVisible: true})//图片名称 图片描述 是否公开默认不公开
     }
@@ -123,17 +121,13 @@ class AlbumList extends Component<Props,State> {
             formData.append("tags", null);
         }
         
-        Axios.post("/api/photo/upload", formData,{
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            },
-        }).then(value => {
+        Axios.post("/api/photo/upload", formData).then(value => {
             if (value.data.status === "ok") {
                 notification.info({
                     message: "上传成功"
                 });
                 this.setState({uploadModalVisible: false, uploadUploading: false})
-                //getPhotoData(this.props)
+                getPhotoDataFromExternal(this.props)
               albumListMobx.getAlbumList();
             }
         }).catch(err=>{
@@ -155,50 +149,13 @@ class AlbumList extends Component<Props,State> {
     }
     onMultiUploadProgress=(e:ProgressEvent)=>{
         let result = ((e.loaded / e.total) * 100).toFixed(2);
-        this.setState({uploadProgress: parseFloat(result)})
-    }
-    onMultipleSubmitTest=(e:FormEvent)=>{
-      e.preventDefault();
-      if (!this.state.uploadMultipleFiles) {
-        return;
-      }
-      if (this.state.uploadMultipleFiles.length === 0) {
-        return;
-      }
-      if (!this.state.uploadMultipleFiles.every(value => {
-        return value.type.startsWith("image/");
-      })) {
-        message.error("请确认上传文件类型全部为图片")
-        return;
-      }
-      this.setState({uploadUploading:true});
-      let formData = new FormData();
-      let multiAlbumId = this.props.form.getFieldValue("multiAlbumId");
-      this.state.uploadMultipleFiles.forEach((value, index) => {
-        formData.append("file", value);
-        formData.set("albumId", multiAlbumId);
-        Axios.post("/api/photo/uploadsTest", formData,{
-          onUploadProgress:this.onMultiUploadProgress
-        }).then(value => {
-          console.log(value);
-          // if (value.data.successCount === this.state.uploadMultipleFiles.length) {//
-          //   notification.info({message: "上传失败"});
-          //   this.setState({uploadUploading: false})
-          // } else {
-          //   notification.success({message: "上传成功"})
-          //   this.setState({uploadUploading: false, uploadMultipleVisible: false})
-          //   albumListMobx.getAlbumList();
-          //   getPhotoData(this.props)
-          //   userInfoMobx.getUserInfo();
-          // }
-        }).catch(err=>{
-          notification.info({message: "上传失败"});
-          this.setState({uploadUploading: false})
+        this.setState({uploadProgress: parseFloat(result)},()=>{
+          if (this.state.uploadProgress === 100) {
+            notification.warn({message: "上传成功,请不要关闭本窗口,等待后台处理"})
+          }
         })
-      });
-      
     }
-    onMultipleSubmit=(e:FormEvent)=>{                //要改  体验不好
+    onMultipleSubmit=(e:FormEvent)=>{
       e.preventDefault();
       if (!this.state.uploadMultipleFiles) {
         return;
@@ -228,12 +185,14 @@ class AlbumList extends Component<Props,State> {
         } else {
           if (value.data.successCount === this.state.uploadMultipleFiles.length) {
             notification.success({message: "上传成功"});
+            getPhotoDataFromExternal(this.props)
+            albumListMobx.getAlbumList();
           } else {
             notification.info({message:`阿哦,有${value.data.failedCount}图片上传失败了`});
           }
           this.setState({uploadUploading: false, uploadMultipleVisible: false});
           albumListMobx.getAlbumList();
-          getPhotoData(this.props)
+          getPhotoDataFromExternal(this.props)
           userInfoMobx.getUserInfo();
         }
       }).catch(err=>{
@@ -331,12 +290,12 @@ class AlbumList extends Component<Props,State> {
         const getFieldDecorator = this.props.form.getFieldDecorator;
         let nickname = "", avatar = "", storeSpace: number | string = 0, usedSpace: number | string = 0, signature = "";
         let progress = 0;
-        if (this.props.userInfo) {
-            nickname = this.props.userInfo.nickname;
-            avatar = this.props.userInfo.avatar;
-            signature = this.props.userInfo.signature;
-            storeSpace = parseFloat((this.props.userInfo.storeSpace / 1024 / 1024 / 1024).toFixed(2));
-            usedSpace=parseFloat((this.props.userInfo.usedSpace / 1024 / 1024 / 1024).toFixed(2))
+        if (userInfoMobx.userInfo) {
+            nickname = userInfoMobx.userInfo.nickname;
+            avatar = userInfoMobx.userInfo.avatar;
+            signature = userInfoMobx.userInfo.signature;
+            storeSpace = parseFloat((userInfoMobx.userInfo.storeSpace / 1024 / 1024 / 1024).toFixed(2));
+            usedSpace=parseFloat((userInfoMobx.userInfo.usedSpace / 1024 / 1024 / 1024).toFixed(2))
             if (usedSpace === 0) {
                 usedSpace = (usedSpace * 1024).toFixed(2) + "MB";
             } else {
@@ -389,10 +348,10 @@ class AlbumList extends Component<Props,State> {
               </FormItem>
               <FormItem label={"选择相册"}>
                 {getFieldDecorator("albumId", {
-                  initialValue: this.props.albumList.length === 0 ? null : this.props.albumList[0].albumId
+                  initialValue: albumListMobx.albumList.length === 0 ? null : albumListMobx.albumList[0].albumId
                 })(
                   <Select>
-                    {this.props.albumList ? this.props.albumList.map((value, index) => {
+                    {albumListMobx.albumList ? albumListMobx.albumList.map((value, index) => {
                       return <Select.Option key={index + ""}
                                             value={value.albumId}>{value.name}</Select.Option>;
                     }) : <CustomSpin/>}
@@ -411,10 +370,10 @@ class AlbumList extends Component<Props,State> {
           <Form onSubmit={(e) => this.onMultipleSubmit(e)}>
             <FormItem label={"选择相册"}>
               {getFieldDecorator("multiAlbumId", {
-                initialValue: this.props.albumList.length === 0 ? null : this.props.albumList[0].albumId
+                initialValue: albumListMobx.albumList.length === 0 ? null : albumListMobx.albumList[0].albumId
               })(
                 <Select style={{width: "100%"}}>
-                  {this.props.albumList ? this.props.albumList.map((value, index) => {
+                  {albumListMobx.albumList ? albumListMobx.albumList.map((value, index) => {
                     return <Select.Option key={index + ""}
                                           value={value.albumId}>{value.name}</Select.Option>;
                   }) : <CustomSpin/>}
@@ -499,14 +458,14 @@ class AlbumList extends Component<Props,State> {
             <Col span={20} offset={1} className={`${style.height100} ${style['right-bottom']}`}>
               <Switch>
                 <Route path={'/albumList/search'}
-                       render={(props) => <PhotoShowWrapper type={"searchPhotos"} {...props}/>}/>  {/*特么的render有个props参数的   我说老出问题*/}
-                <Route exact path={'/albumList'} render={(props) => <PhotoShowWrapper type={"allPhotos"} {...props}/>}/>
+                       render={(props) => <PhotosShow type={"searchPhotos"} {...props}/>}/>  {/*特么的render有个props参数的   我说老出问题*/}
+                <Route exact path={'/albumList'} render={(props) => <PhotosShow type={"allPhotos"} {...props}/>}/>
                 <Route path={'/albumList/albums'}
                        render={() => <AlbumList1 data={albumListMobx.albumList}/>}/>
                 <Route path={'/albumList/share'} component={Share}/>
                 <Route path={'/albumList/recycleBin'} component={RecycleBin}/>
                 <Route path={'/albumList/dd/:id'} render={(props)=><Test {...props}/>}/>
-                <Route path={'/albumlist/:id'} render={(props) => <PhotoShowWrapper type={"albumPhotos"} {...props}/>}/>
+                <Route path={'/albumlist/:id'} render={(props) => <PhotosShow type={"albumPhotos"} {...props}/>}/>
               </Switch>
             </Col>
           </Row>
@@ -516,4 +475,4 @@ class AlbumList extends Component<Props,State> {
     }
 }
 
-export default Form.create()(AlbumList);
+export default withRouter(Form.create()(AlbumList));
