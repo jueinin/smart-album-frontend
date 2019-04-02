@@ -3,6 +3,7 @@ import {Button, Col, Dropdown, Menu, message} from "antd";
 import {Link, RouteComponentProps} from "react-router-dom";
 import Axios from "axios";
 import style from './navbarAvatar.module.css';
+import {avatarUrl} from "../../../index";
 interface Props extends RouteComponentProps{
   nickname: string;
   avatar: string;
@@ -34,7 +35,7 @@ class NavbarAvatar extends Component<Props,{}> {
           <Col span={this.props.span||2} offset={this.props.offset||4} className={style["nav-buttons"]}>
             <Link className={style['avatar-link']} to={'/personalCenter'}>
               <img className={style['avatar-img']}
-                   src={'/api/user/showAvatar'}/>
+                   src={avatarUrl()}/>
             </Link>
           </Col>
         </Dropdown>

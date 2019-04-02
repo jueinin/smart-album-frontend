@@ -10,7 +10,7 @@ import Password from "./password/password";
 import ModifyPersonalInfo from "./modifyPersonalInfo/modifyPersonalInfo";
 import Notification from './notification/notification';
 import Axios from "axios";
-import {mockPath} from "../../index";
+import {avatarUrl, mockPath} from "../../index";
 import Navbar from "../../components/navbar/navbar";
 import NavbarLink from "../../components/navbar/navbarLink/navbarLink";
 import NavbarAvatar from "../../components/navbar/navbarAvatar/navbarAvatar";
@@ -28,7 +28,8 @@ class PersonalCenter extends Component<Props,{}> {
         let nickname = "", avatar = "", signature = "";
         if (this.props.userInfo) {
             nickname = this.props.userInfo.nickname;
-            avatar = this.props.userInfo.avatar;
+            //avatar = this.props.userInfo.avatar;
+            avatar = avatarUrl();
             signature = this.props.userInfo.signature;
         }
         return (

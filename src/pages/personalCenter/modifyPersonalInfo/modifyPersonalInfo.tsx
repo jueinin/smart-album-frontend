@@ -3,7 +3,7 @@ import Col from "antd/lib/grid/col";
 import Row from "antd/lib/grid/row";
 import {Button, Form, Input, message, Select, Upload} from "antd";
 import Axios from "axios";
-import {mockPath} from "../../../index";
+import {avatarUrl, mockPath} from "../../../index";
 import CustomSpin from "../../../components/CustomSpin/CustomSpin";
 import {FormComponentProps} from "antd/lib/form";
 import {RcFile} from "antd/lib/upload/interface";
@@ -83,7 +83,8 @@ class ModifyPersonalInfo extends Component<Props,State> {
         let userInfo = this.props.userInfo;
         let avatar = "";
         if (userInfo) {
-            avatar = userInfo.avatar;
+            //avatar = userInfo.avatar;
+            avatar = avatarUrl();
             if (this.state.uploadAvatar) {
                 avatar=this.state.avatarUrl;
             }
