@@ -2,9 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {BrowserRouter, Route, Switch} from 'react-router-dom'
 import MainRoute from "./MainRoute";
-import 'mdui/dist/css/mdui.css';
-import 'mdui/dist/js/mdui';
-import 'antd/dist/antd.css'
 import './index.css'
 import SignUp from "./pages/signup/signup";
 import zhCN from 'antd/lib/locale-provider/zh_CN';
@@ -16,11 +13,8 @@ import Axios from "axios";
 import PersonalCenterWrapper from "./pages/personalCenter/personalCenterWrapper";
 import ResetPassword from "./pages/resetPassword/resetPassword";
 import RetrievePassword from "./pages/retrievePassword/retrievePassword";
-import Search from "./pages/search/search";
 import SearchWrapper from "./pages/search/searchWrapper";
 import BackendRoute from "./pages/backend/backendRoute";
-import {photoPageTypeMobx} from "./mobx/PhotoPageTypeMobx";
-import {all} from "q";
 export const mockPath = "http://120.79.239.103:8080/mock/16/mockapi";
 export const picUrlPrefix = "/api/photo/show?photoId=";
 export const picThumbnailUrlPrefix = "/api/photo/showThumbnail?photoId=";

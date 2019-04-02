@@ -24,7 +24,7 @@ class NavbarAvatar extends Component<Props,{}> {
       <Menu.Item>昵称:&nbsp;{this.props.nickname}</Menu.Item>
       <Menu.Item title={this.props.signature||"还没有个性签名呢"} className={style['signature']}>个性签名:&nbsp;{this.props.signature||"还没有个性签名呢"}</Menu.Item>
       <Menu.Item>
-        <Button htmlType={'button'}onClick={this.onLogout}>
+        <Button htmlType={'button'} onClick={this.onLogout}>
           退出登录
         </Button>
       </Menu.Item>
@@ -34,7 +34,7 @@ class NavbarAvatar extends Component<Props,{}> {
           <Col span={this.props.span||2} offset={this.props.offset||4} className={style["nav-buttons"]}>
             <Link className={style['avatar-link']} to={'/personalCenter'}>
               <img className={style['avatar-img']}
-                   src={this.props.avatar}/>
+                   src={'/api/user/showAvatar'}/>
             </Link>
           </Col>
         </Dropdown>

@@ -4,8 +4,9 @@ import style from './albumList.module.css';
 import {Button, message} from "antd";
 import Axios from "axios";
 import CustomSpin from "../CustomSpin/CustomSpin";
-import {AlbumProperties} from "../../mobx/albumListMobx";
+import {albumListMobx, AlbumProperties} from "../../mobx/albumListMobx";
 import {observer} from "mobx-react";
+import {getPhotoDataFromExternal} from "../../pages/albumList/phototsShow/photosShow";
 interface State {
 
 }
@@ -19,6 +20,7 @@ class AlbumList extends Component<Props,State> {
         this.state={data: undefined}
     }
     componentDidMount(): void {
+        albumListMobx.getAlbumList();
     }
 
     render() {

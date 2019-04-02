@@ -18,7 +18,7 @@ interface Props extends FormComponentProps , RouteComponentProps {
 
 }
 export const elseError=()=>{
-    notification.info({message: "因不可抗力,注册失败了"});
+    notification.info({message: "请求失败"});
 }
 class Signup extends Component<Props,{}> {
     usernameVlidate=(rules:any,value:string,callback:any)=>{
