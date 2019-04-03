@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import 'antd/dist/antd.css'
 import style from './indexPage.module.css';
 import {Button, Col, Input, Row} from "antd";
 import {Link, RouteComponentProps} from "react-router-dom";

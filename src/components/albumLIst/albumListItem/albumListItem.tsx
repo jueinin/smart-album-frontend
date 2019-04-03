@@ -8,7 +8,7 @@ import PhotoList from "../../photoList/photoList";
 import CustomSpin from "../../CustomSpin/CustomSpin";
 import {observer} from "mobx-react";
 import {albumListMobx} from "../../../mobx/albumListMobx";
-import {PhotoProperties} from "../../../mobx/photoListMobx";
+import {PhotoPageProperties, PhotoProperties} from "../../../mobx/photoListMobx";
 import {picThumbnailUrlPrefix} from "../../../index";
 import {elseError} from "../../../pages/signup/signup";
 interface Props extends FormComponentProps{
@@ -23,7 +23,7 @@ interface Props extends FormComponentProps{
 interface State {
     editVisible: boolean;
     mergeVisible: boolean;
-    photoListData: PhotoProperties[];
+    photoListData: PhotoPageProperties;
 }
 @observer
 class AlbumListItem extends Component<Props,State> {
@@ -40,7 +40,7 @@ class AlbumListItem extends Component<Props,State> {
         this.setState({editVisible: true},()=>{   //这个勉强能用了 可能还要改
             //请求photolist
             Axios.get('/api/album/getAlbumPhotos',{
-                params:{albumId: this.props.id}
+                params:{albumId: this.props.id,page:-10086}
             }).then(value => {
                 this.setState({photoListData: value.data})
             }).catch(err=>{
@@ -186,7 +186,7 @@ class AlbumListItem extends Component<Props,State> {
                               })[0].cover : ""
                           })(
                             <RadioGroup className={style["photo-list"]}>
-                                {this.state.photoListData.map(value => {
+                                {this.state.photoListData.photos.map(value => {
                                     return <Radio key={value.photoId} value={value.photoId}>
                                         <img style={{maxWidth: "100%"}} src={picThumbnailUrlPrefix + value.photoId}/>
                                     </Radio>

@@ -2,8 +2,9 @@ import React, {Component, FormEvent} from 'react';
 import {Button, Form, Input, message} from "antd";
 import style from './login.module.css';
 import Axios from "axios";
+import {RouteComponentProps} from "react-router";
 
-class Login extends Component {
+class Login extends Component<RouteComponentProps,{}> {
   username: React.RefObject<Input> = React.createRef();
   password: React.RefObject<Input> = React.createRef();
   onSubmit=(e:FormEvent)=>{
@@ -14,6 +15,11 @@ class Login extends Component {
     }).then(value => {
       if (value.data.status === 'ok') {
         message.success('登录成功');
+        this.props.history.push("/backend/index");
+      }else if (value.data.status == 'err password') {
+        message.error("密码错误");
+      }else if (value.data.status === 'not found') {
+        message.error("无效的用户名");
       }
     })
   }

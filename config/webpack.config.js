@@ -1,5 +1,5 @@
 'use strict';
-
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
@@ -288,6 +288,13 @@ module.exports = function(webpackEnv) {
     module: {
       strictExportPresence: true,
       rules: [
+        {
+          loader:'webpack-ant-icon-loader',
+          enforce: 'pre',
+          include:[
+            path.resolve('node_modules/@ant-design/icons/lib/dist')
+          ]
+        },
         // Disable require.ensure as it's not a standard language feature.
         { parser: { requireEnsure: false } },
 
@@ -476,6 +483,8 @@ module.exports = function(webpackEnv) {
       ],
     },
     plugins: [
+      new BundleAnalyzerPlugin(),
+
       // Generates an `login.html` file with the <script> injected.
       new HtmlWebpackPlugin(
         Object.assign(

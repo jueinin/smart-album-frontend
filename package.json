@@ -146,6 +146,8 @@
     "@types/axios": "^0.14.0",
     "@types/query-string": "^6.3.0",
     "@types/react-router-dom": "^4.3.1",
-    "babel-plugin-import": "^1.11.0"
+    "babel-plugin-import": "^1.11.0",
+    "webpack-ant-icon-loader": "^1.0.5",
+    "webpack-bundle-analyzer": "^3.1.0"
   }
 }

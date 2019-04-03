@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
 import {Route, Switch} from "react-router";
 import Login from "./login/login";
-import IndexPage from "../indexPage/indexPage";
+import IndexPage from "./indexPage/indexPage";
+
 
 class BackendRoute extends Component {
   render() {
