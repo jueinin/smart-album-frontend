@@ -11,6 +11,7 @@
     <div><input type="checkbox" checked/>修改密码,以及资料等</div>
 </div>
 <h3>后端部分</h3>
+<h4><a href="https://github.com/dreamgyf/smart_album">后端大佬的repo链接</a></h4>
 <div>
     <div><input type="checkbox" checked/>spring boot mybaties数据库操作</div>
     <div><input type="checkbox" checked/>基于session的身份验证</div>
