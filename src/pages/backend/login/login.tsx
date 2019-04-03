@@ -20,7 +20,11 @@ class Login extends Component<RouteComponentProps,{}> {
         message.error("密码错误");
       }else if (value.data.status === 'not found') {
         message.error("无效的用户名");
+      }else if (value.data.status === 'already login') {
+        this.props.history.push('/backend/index');
       }
+    }).catch(err=>{
+      message.error('服务器错误');
     })
   }
   render() {

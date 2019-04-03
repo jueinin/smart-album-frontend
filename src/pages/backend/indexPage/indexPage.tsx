@@ -3,7 +3,7 @@ import style from './indexPage.module.css';
 import {RouteComponentProps} from "react-router";
 import Axios from "axios";
 import Navbar from "../../../components/navbar/navbar";
-import {List} from "antd";
+import {List, message} from "antd";
 import CustomSpin from "../../../components/CustomSpin/CustomSpin";
 interface Props extends RouteComponentProps{
 
@@ -28,6 +28,11 @@ class IndexPage extends Component<Props,State> {
   componentDidMount(): void {
     Axios.get("/backendApi/getInfo").then(value => {
     this.setState({data: value.data})
+    }).catch(err=>{
+      if (err.data.message === "not authed") {
+        message.error("请登陆后重试");
+        this.props.history.push('/backend/login');
+      }
     })
   }
   renderItem=(item)=>{
