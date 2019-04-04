@@ -39,13 +39,13 @@
 <h4>PS 已经部署在 <a href="newbee.cf:3000">newbee.cf:3000</a>可以注册一个帐户体验一下,服务器只有1M的带宽可能比较卡,可以自行部署到本机体验</h4>
 <div>
     <h4>首页</h4>
-    <img style="width: 100%" src="http://jueinin.oss-cn-hongkong.aliyuncs.com/smart-album/%E9%A6%96%E9%A1%B5.png"
+    <img src="http://jueinin.oss-cn-hongkong.aliyuncs.com/smart-album/%E9%A6%96%E9%A1%B5.png"
          alt="'首页"/>
     <h4>注册</h4>
-    <img style="width: 100%" src="http://jueinin.oss-cn-hongkong.aliyuncs.com/smart-album/%E6%B3%A8%E5%86%8C.png"
+    <img src="http://jueinin.oss-cn-hongkong.aliyuncs.com/smart-album/%E6%B3%A8%E5%86%8C.png"
          alt="注册"/>
     <h4>登录</h4>
-    <img style="width: 100%" src="http://jueinin.oss-cn-hongkong.aliyuncs.com/smart-album/%E7%99%BB%E5%BD%95.png"
+    <img src="http://jueinin.oss-cn-hongkong.aliyuncs.com/smart-album/%E7%99%BB%E5%BD%95.png"
          alt="注册"/>
     <h4>个人主页</h4>
     <img style="width: 100%" src="http://jueinin.oss-cn-hongkong.aliyuncs.com/smart-album/%E4%B8%AA%E4%BA%BA%E4%B8%BB%E9%A1%B5.png"
