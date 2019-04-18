@@ -8,6 +8,8 @@ import {observer} from "mobx-react";
 import NavbarAvatar from "../../components/navbar/navbarAvatar/navbarAvatar";
 import {userInfoMobx} from "../../mobx/userMobx";
 import {albumListMobx} from "../../mobx/albumListMobx";
+import Axios from "axios";
+import PhotosShow from "../albumList/phototsShow/photosShow";
 @observer
 class IndexPage extends Component<RouteComponentProps> {
     input: React.RefObject<Input> = React.createRef();
@@ -16,7 +18,13 @@ class IndexPage extends Component<RouteComponentProps> {
         this.props.history.push("/search?keyword=" + value);
     }
     componentDidMount(): void {
-        //ajax验证登录
+        Axios.get('/api/user/checkLoginStatus').then(value => {
+            if (value.data.status === 'not login') {
+                userInfoMobx.userInfo = undefined;
+            } else {
+                userInfoMobx.getUserInfo();
+            }
+        })
     }
     
     render() {
@@ -119,7 +127,7 @@ class IndexPage extends Component<RouteComponentProps> {
               </Row>
               <Row>
                   <Col className={style.promotiom} span={24}>
-                      我是推荐
+                  <PhotosShow promotionPage type={"promotionPhotos"}/>
                   </Col>
               </Row>
               <Row className={style.footer}>

@@ -43,6 +43,7 @@ interface PhotosWithCheck{
 }
 interface Props extends RouteComponentProps<RouteParams>,FormComponentProps{
     searchShowPage?: boolean;
+    promotionPage?: boolean;
     type:PhotoPageType
 }
 interface State {
@@ -71,12 +72,14 @@ export let getPhotoData = (props: Props, page?: number, callback?: any) => {   /
         let keyword = queryString.parse(props.location.search.substring(1)).keyword as string;
         photoListMobx.getGlobalSearchPhotos(keyword, page);
         photoPageTypeMobx.setPhotoPageType("externalSearchPhotos");
+    }else if (props.type === "promotionPhotos") {
+    
     }
     if (callback) {
         callback();
     }
 };
-export let getPhotoDataFromExternal=(props,page?:number)=>{
+export let getPhotoDataFromExternal=(props,page?:number)=>{  //外部调用刷新比如上传文件刷新
     if (photoPageTypeMobx.type === "allPhotos") {
         photoListMobx.getAllPhotos(page);
     }else if (photoPageTypeMobx.type === "albumPhotos") {
@@ -295,12 +298,12 @@ class PhotosShow extends Component<Props, State> {
             message.error("网络异常请重试");
         });
     };
-    onSelectAll=()=>{
+    onSelectAll = () => {
         if (this.state.selectedPhotosId.length === photoListMobx.photoPageList.photos.length) {
             this.setState({
                 selectedPhotosId: []
             });
-            photoListMobx.photoWithChecked.photos=photoListMobx.photoWithChecked.photos.map(value => {
+            photoListMobx.photoWithChecked.photos = photoListMobx.photoWithChecked.photos.map(value => {
                 value.checked = false;
                 return value;
             })
@@ -308,12 +311,15 @@ class PhotosShow extends Component<Props, State> {
             this.setState({
                 selectedPhotosId: photoListMobx.photoPageList.photos.map(value => value.photoId)
             });
-            photoListMobx.photoWithChecked.photos=photoListMobx.photoWithChecked.photos.map(value => {
+            photoListMobx.photoWithChecked.photos = photoListMobx.photoWithChecked.photos.map(value => {
                 value.checked = true;
                 return value;
             })
         }
-    }
+    };
+    onLikeClick = (photoId: number) => {
+        
+    };
     render() {
         const that = this;
         const MenuItem = Menu.Item;
@@ -340,6 +346,12 @@ class PhotosShow extends Component<Props, State> {
                 {that.props.searchShowPage ? null : <Dropdown overlay={overlay}>
                     <Link to={'#'} className={style["more-icon"]}><Icon type="more"/></Link>
                 </Dropdown>}
+                {that.props.promotionPage?null:<div className={style['like-wrapper']}>
+                    <div className={style['like-inner']}>
+                        <span className={style['likes']}>stars</span>
+                        <span className={style['likes-icon']}><Icon type="like" /></span>
+                    </div>
+                </div>}
             </Col>;
         };
         let name = "";
@@ -409,7 +421,7 @@ class PhotosShow extends Component<Props, State> {
                       </FormItem>
                   </Form>
               </Modal>
-              {this.props.searchShowPage?null:<Row>
+              {(this.props.searchShowPage||this.props.promotionPage)?null:<Row>
                   <Col span={24} className={style['top-button']}>
                       <Button size={"large"} htmlType={'button'} onClick={this.onMultipleEditClick}>编辑</Button>
                       {this.state.editing ? <React.Fragment>

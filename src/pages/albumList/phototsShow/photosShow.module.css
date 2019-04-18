@@ -55,3 +55,26 @@
 .top-button :global(.ant-btn) {
     margin-right: 15px;
 }
+.like-wrapper {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.3);
+    height: 30px;
+    bottom: 0;
+    width: calc(100% - 32px);
+    left: 16px;
+    right: 0;
+}
+.like-inner {
+    display: flex;
+    color: #fff;
+    justify-content: flex-start;
+    align-items: center;
+}
+.likes {
+    margin-left: 10px;
+}
+.likes-icon {
+    margin-left: auto;
+    margin-right: 10px;
+    font-size: 1.2rem;
+}

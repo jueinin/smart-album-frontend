@@ -26,6 +26,7 @@ class IndexPage extends Component<Props,State> {
     data: undefined
   }
   componentDidMount(): void {
+    
     Axios.get("/backendApi/getInfo").then(value => {
     this.setState({data: value.data})
     }).catch(err=>{
