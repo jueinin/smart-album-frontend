@@ -17,7 +17,9 @@ interface State {
 @observer
 class Search extends Component<Props,State> {
   componentDidMount(): void {
-    console.log(photoListMobx.photoPageList);
+    let keyword = querystring.parse(this.props.location.search.substring(1)).keyword as string;
+    photoListMobx.getGlobalSearchPhotos(keyword);
+    photoPageTypeMobx.setPhotoPageType("externalSearchPhotos");
   }
   
   render() {
@@ -28,7 +30,7 @@ class Search extends Component<Props,State> {
           <NavbarLink title={'个人主页'} path={'/albumlist'}/>
         </Navbar>
         <div className={style['body']}>
-        {this.props.photos&&this.props.photos.photos.length?<PhotosShow type={photoPageTypeMobx.type} searchShowPage={true}{...this.props} />:"没有搜索结果"}
+        {<PhotosShow type={"externalSearchPhotos"} searchShowPage promotionPage {...this.props} />}
         </div>
       </div>
     );

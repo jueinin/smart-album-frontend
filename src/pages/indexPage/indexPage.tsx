@@ -48,7 +48,7 @@ class IndexPage extends Component<RouteComponentProps> {
                           <div>
                               <h2 className={style.title}>欢迎来到NEWBEE</h2>
                               <div className={style["search-input-wrapper"]}>
-                                  <Input ref={this.input} className={style["search-input"]} allowClear
+                                  <Input ref={this.input} className={style["search-input"]} allowClear onPressEnter={this.onSearch}
                                          placeholder={"请输入关键字进行搜索"}/><Button type={"primary"}
                                                                              onClick={this.onSearch}>搜索</Button>
                               </div>
@@ -127,7 +127,7 @@ class IndexPage extends Component<RouteComponentProps> {
               </Row>
               <Row>
                   <Col className={style.promotiom} span={24}>
-                  <PhotosShow promotionPage type={"promotionPhotos"}/>
+                  <PhotosShow promotionPage searchShowPage type={"promotionPhotos"}/>
                   </Col>
               </Row>
               <Row className={style.footer}>

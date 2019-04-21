@@ -16,6 +16,7 @@ class Search extends Component<Props,State> {
     let keyword = this.props.location.search.substring(1).split("=")[1];
     //this.setState({keyword: keyword});
     photoListMobx.getScopeSearchPhotos(keyword);
+    console.log("external search");
   }
   componentWillReceiveProps(nextProps: Readonly<Props>, nextContext: any): void {
     let keyword = nextProps.location.search.substring(1).split("=")[1];
@@ -25,7 +26,7 @@ class Search extends Component<Props,State> {
   
   render() {
     return <div>
-      <PhotosShow type={photoPageTypeMobx.type} {...this.props}/>
+      <PhotosShow type={"externalSearchPhotos"} searchShowPage {...this.props}/>
     </div>;
   }
 }

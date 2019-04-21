@@ -29,8 +29,6 @@ import 'react-photoswipe/lib/photoswipe.css';
 import {PhotoPageType, photoPageTypeMobx} from "../../../mobx/PhotoPageTypeMobx";
 import {albumListMobx} from "../../../mobx/albumListMobx";
 import * as queryString from "querystring";
-import {number} from "prop-types";
-
 interface RouteParams{
     id?: string;
 }
@@ -73,7 +71,8 @@ export let getPhotoData = (props: Props, page?: number, callback?: any) => {   /
         photoListMobx.getGlobalSearchPhotos(keyword, page);
         photoPageTypeMobx.setPhotoPageType("externalSearchPhotos");
     }else if (props.type === "promotionPhotos") {
-    
+        photoListMobx.getPromotionPhotos();
+        photoPageTypeMobx.setPhotoPageType("promotionPhotos");
     }
     if (callback) {
         callback();
@@ -108,16 +107,7 @@ class PhotosShow extends Component<Props, State> {
         this.state={editVisible: false, selectedPhotoId: undefined, photoSwipeOpen: false,tags:[], tagInputShow: false,
             selectedPhotosId: [], editing: false, checkALl: false}
     }
-    componentWillReact(){
-    
-    }
     componentWillReceiveProps(nextProps: Readonly<Props>, nextContext: any): void {
-        // photoPageTypeMobx.type = this.props.type;
-        // let data: PhotosWithCheck = photoListMobx.photoPageList;
-        // data.photos.forEach(value => {
-        //     value.checked = false;
-        // })
-        // this.setState({data})
         getPhotoData(nextProps);
     }
     
@@ -318,13 +308,43 @@ class PhotosShow extends Component<Props, State> {
         }
     };
     onLikeClick = (photoId: number) => {
-        
+        Axios.get("/api/photo/like",{
+            params: {
+                photoId: photoId
+            }
+        }).then(value => {
+            let status = value.data.status;
+            if (status === 'like success') {
+                message.success('点赞成功');
+                photoListMobx.photoWithChecked.photos.map(value1 => {
+                    if (value1.photoId === photoId) {
+                        value1.likes = value1.likes + 1;
+                        value1.userLike=1;
+                        return value1;
+                    }
+                    return value1;
+                })
+            }
+            else if (status === 'like failed') {
+                message.info("取消点赞");
+                photoListMobx.photoWithChecked.photos.map(value1 => {
+                    if (value1.photoId === photoId) {
+                        value1.likes = value1.likes - 1;
+                        value1.userLike = 0;
+                        return value1;
+                    }
+                    return value1;
+                })
+            } else {
+                message.error("服务器繁忙");
+            }
+        })
     };
     render() {
         const that = this;
         const MenuItem = Menu.Item;
         const getFieldDecorator = this.props.form.getFieldDecorator;
-        let Item = function (index: number, photoId: number,checked:boolean) {
+        let Item = function (index: number, photoId: number,checked:boolean,likes:number,userLike:number) {
             let overlay = <Menu>
                 <MenuItem onClick={() => that.onEditClick(photoId)}>编辑</MenuItem>
                 <MenuItem>
@@ -340,18 +360,20 @@ class PhotosShow extends Component<Props, State> {
                     <img className={`${style['img']}`}
                          onClickCapture={(e) => that.onImgClick(photoId, e)}
                          src={picThumbnailUrlPrefix + photoId}/>
-                    {that.state.editing ? <Checkbox checked={checked}  onChange={(e) => that.onCheckboxChange(e, photoId)}
-                                                    className={style['checkbox']}/> : null}
+                    {that.state.editing ?
+                      <Checkbox checked={checked} onChange={(e) => that.onCheckboxChange(e, photoId)}
+                                className={style['checkbox']}/> : null}
                 </span>
                 {that.props.searchShowPage ? null : <Dropdown overlay={overlay}>
                     <Link to={'#'} className={style["more-icon"]}><Icon type="more"/></Link>
                 </Dropdown>}
-                {that.props.promotionPage?null:<div className={style['like-wrapper']}>
+                {that.props.promotionPage ? <div className={style['like-wrapper']}>
                     <div className={style['like-inner']}>
-                        <span className={style['likes']}>stars</span>
-                        <span className={style['likes-icon']}><Icon type="like" /></span>
+                        <span className={style['likes']}>{likes}stars</span>
+                        <span className={style['likes-icon']}><Icon type="like" rotate={userLike==1 ? 180 : 0}
+                                                                    onClick={() => that.onLikeClick(photoId)}/></span>
                     </div>
-                </div>}
+                </div> : null}
             </Col>;
         };
         let name = "";
@@ -433,7 +455,7 @@ class PhotosShow extends Component<Props, State> {
               <Row gutter={32} className={style['root-row']} onScroll={this.onScroll}>
                   {photoListMobx.photoWithChecked.photos.length !== 0 ? <React.Fragment>
                       {photoListMobx.photoWithChecked.photos.map((value, index) => {
-                          return Item(index, value.photoId, value.checked)
+                          return Item(index, value.photoId, value.checked, value.likes,value.userLike);
                       })}
                   </React.Fragment> : <Col span={24} className={style['no-photo']}>
                       这里没有图片呢

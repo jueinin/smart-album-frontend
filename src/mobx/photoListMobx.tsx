@@ -1,6 +1,7 @@
 import {action, autorun, computed, observable, reaction} from "mobx";
 import Axios from "axios";
 import {mockPath} from "../index";
+import {bool} from "prop-types";
 export interface PhotoProperties {
   photoId: number;
   name: string;
@@ -14,6 +15,8 @@ export interface PhotoProperties {
   tags: string[];
   originalTime: string;
   checked?: boolean;
+  userLike?: number;
+  
 }
 
 export interface PhotoPageProperties {
@@ -22,17 +25,17 @@ export interface PhotoPageProperties {
 }
 let defaultPhotoPageList={pages:1, photos: []};
 class PhotoListMobx {
-  @observable photoList: PhotoProperties[]=[];
+  //@observable photoList: PhotoProperties[]=[];
   @observable photoPageList: PhotoPageProperties = defaultPhotoPageList;
   
   // @ts-ignore
-  @observable photoWithChecked:PhotoPageProperties={
+  @observable photoWithChecked: PhotoPageProperties = {
     pages: this.photoPageList.pages,
-    photos:this.photoPageList.photos.map(value => {
+    photos: this.photoPageList.photos.map(value => {
       value.checked = false;
       return value;
     })
-  }
+  };
   
   a=autorun(() => {
     this.photoWithChecked = {
@@ -159,6 +162,12 @@ class PhotoListMobx {
         }
       })
     }
+  }
+  @action
+  getPromotionPhotos(){
+    Axios.get("/api/photo/recommend").then(value => {
+      this.photoPageList.photos = value.data;
+    })
   }
 }
 
