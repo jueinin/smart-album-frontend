@@ -468,4 +468,5 @@ class PhotosShow extends Component<Props, State> {
     }
 }
 
+// @ts-ignore
 export default withRouter(Form.create()(PhotosShow));

@@ -29,7 +29,10 @@ class AlbumList extends Component<Props,State> {
                 <div className={style.body}>
                     {this.props.data?<React.Fragment>
                             {this.props.data.map((value, index) => {
-                                return <AlbumListItem key={index} id={value.albumId} cover={value.cover}
+                                // @ts-ignore
+                                return <AlbumListItem key={index}
+                                                      id={value.albumId}
+                                                      cover={value.cover}
                                                       title={value.name}
                                                       createTime={value.createTime} description={value.description}
                                                       photoAmount={value.photoAmount}/>;

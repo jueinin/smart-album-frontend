@@ -37,7 +37,6 @@ import NavbarAvatar from "../../components/navbar/navbarAvatar/navbarAvatar";
 import CustomNavLink from "../../components/navbar/customNavLink/customNavLink";
 import {elseError} from "../signup/signup";
 import Test from "../Test/test";
-import {PhotoPageType} from "../../mobx/PhotoPageTypeMobx";
 import NavbarLink from "../../components/navbar/navbarLink/navbarLink";
 
 interface Props extends FormComponentProps,RouteComponentProps{
@@ -475,4 +474,6 @@ class AlbumList extends Component<Props,State> {   //这玩意儿不要type prop
     }
 }
 
-export default withRouter(Form.create()(AlbumList));
+
+// @ts-ignore
+export default withRouter(Form.create()(AlbumList))

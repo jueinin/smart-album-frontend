@@ -4,7 +4,6 @@ import style from './albumListItem.module.css';
 import {Button, Dropdown, Form, Icon, Input, Menu, message, Modal, Popconfirm, Radio, Select, Tag, Tooltip} from "antd";
 import Axios from "axios";
 import {FormComponentProps} from "antd/lib/form";
-import PhotoList from "../../photoList/photoList";
 import CustomSpin from "../../CustomSpin/CustomSpin";
 import {observer} from "mobx-react";
 import {albumListMobx} from "../../../mobx/albumListMobx";

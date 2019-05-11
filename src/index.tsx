@@ -21,6 +21,7 @@ export const picUrlPrefix = "/api/photo/show?photoId=";
 export const picThumbnailUrlPrefix = "/api/photo/showThumbnail?photoId=";
 export const avatarUrl = () => '/api/user/showAvatar?time=' + Math.random();
                                                                                                  //弄清楚冒泡捕获  还有那些狗屎高度    mobx的异步没有回调可能需要手动在请求里添加回调函数
+
 Axios.interceptors.response.use(value => {//mobx里的数据  要是state和
     return value;
 },(err:any)=>{
