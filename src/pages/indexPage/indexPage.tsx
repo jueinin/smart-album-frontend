@@ -58,6 +58,16 @@ class IndexPage extends Component<RouteComponentProps> {
               </div>
               <Row>
                   <Col span={24}>
+                      <h1 style={{textAlign: 'center',margin: 10}}>为您推荐</h1>
+                  </Col>
+              </Row>
+              <Row>
+                  <Col className={style.promotiom} span={24}>
+                      <PhotosShow promotionPage searchShowPage type={"promotionPhotos"}/>
+                  </Col>
+              </Row>
+              <Row>
+                  <Col span={24}>
                       <h1 style={{textAlign: "center", fontWeight: 800}}>服务支持</h1>
                   </Col>
               </Row>
@@ -120,16 +130,6 @@ class IndexPage extends Component<RouteComponentProps> {
                       </div>
                   </div>
               </div>
-              <Row>
-                  <Col span={24}>
-                      <h1 style={{textAlign: 'center'}}>为您推荐</h1>
-                  </Col>
-              </Row>
-              <Row>
-                  <Col className={style.promotiom} span={24}>
-                  <PhotosShow promotionPage searchShowPage type={"promotionPhotos"}/>
-                  </Col>
-              </Row>
               <Row className={style.footer}>
                   <Col span={24}>
                       <Link to={'/'}>关于图片</Link>

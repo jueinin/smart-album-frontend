@@ -51,7 +51,7 @@ class PersonalCenterInfo extends Component<Props,State> {
                     src: "http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u591.png"
                 },
                 {
-                    title: "图片数量 " + this.props.userInfo.photoAmount + "本",
+                    title: "图片数量 " + this.props.userInfo.photoAmount + "张",
                     src: "http://jueinin.oss-cn-hongkong.aliyuncs.com/photo/u592.png"
                 },
                 {

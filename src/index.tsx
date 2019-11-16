@@ -5,7 +5,7 @@ import MainRoute from "./MainRoute";
 import './index.css'
 import SignUp from "./pages/signup/signup";
 import zhCN from 'antd/lib/locale-provider/zh_CN';
-import {LocaleProvider, Modal} from "antd";
+import {LocaleProvider, message, Modal} from "antd";
 import SignIn from "./pages/signin/signin";
 import AlbumList from "./pages/albumList/albumList";
 import Test from "./pages/Test/test";
@@ -36,7 +36,11 @@ Axios.interceptors.response.use(value => {//mobx里的数据  要是state和
             })
         return Promise.reject(err.response);
     }
-    return Promise.reject(err.response)
+  if (err.response.data.status === 500) {
+    message.error("服务器开小差了...,重试试试")
+    return Promise.reject(err.response);
+  }
+    return Promise.reject(err.response);
 })
 ReactDOM.render(
   <div>
